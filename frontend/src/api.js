@@ -144,8 +144,44 @@ export const getWalletBalance = (userId) => {
 };
 
 /**
- * Register new user with biometric data
- * Backend: Store user details and biometric hash in database
+ * Register new user with biometric data and wallet
+ * Backend: Store user details, biometric hash, and create wallet in database
+ * 
+ * Request Body:
+ * {
+ *   name: string,
+ *   email: string,
+ *   phone: string (optional),
+ *   initialWalletBalance: number,
+ *   fingerprintData: object (from enrollFingerprint()),
+ *   deviceType: string,
+ *   enrolledAt: ISO timestamp
+ * }
+ * 
+ * Returns: { userId, name, email, walletBalance, biometricEnabled, status }
+ */
+export const registerNewUser = (userData) => {
+    if (MOCK_MODE || TEST_USER_MODE) {
+        // Mock successful registration
+        return Promise.resolve({
+            data: {
+                userId: Date.now(),
+                name: userData.name,
+                email: userData.email,
+                phone: userData.phone,
+                walletBalance: userData.initialWalletBalance,
+                biometricEnabled: true,
+                status: 'ACTIVE',
+                message: 'User registered successfully (MOCK MODE)'
+            }
+        });
+    }
+    return axios.post(`${API_BASE_URL}/auth/register`, userData);
+};
+
+/**
+ * Legacy function - kept for backward compatibility
+ * Use registerNewUser() instead
  */
 export const registerUser = (userData) => 
     axios.post(`${API_BASE_URL}/users/register`, userData);

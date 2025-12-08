@@ -6,6 +6,8 @@ import ShoppingHandheld from './components/ShoppingHandheld';
 import CartReview from './components/CartReview';
 import PaymentConfirmation from './components/PaymentConfirmation';
 import InstallPrompt from './components/InstallPrompt';
+// REGISTRATION: Uncomment below to enable user registration page
+import UserRegistration from './components/UserRegistration';
 import { disableTestMode } from './api';
 
 function App() {
@@ -13,6 +15,9 @@ function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [total, setTotal] = useState(0);
+
+  // REGISTRATION: Uncomment below to enable registration flow
+  const [showRegistration, setShowRegistration] = useState(false);
 
   // Create theme once and memoize it
   const theme = useMemo(() => createTheme({
@@ -63,6 +68,22 @@ function App() {
     setTotal(newTotal);
   }, []);
 
+  // REGISTRATION: Uncomment below functions to enable registration flow
+  const handleShowRegistration = useCallback(() => {
+    setShowRegistration(true);
+  }, []);
+
+  const handleRegistrationBack = useCallback(() => {
+    setShowRegistration(false);
+  }, []);
+
+  const handleRegistrationComplete = useCallback((userData) => {
+    setShowRegistration(false);
+    // Optionally auto-login the user
+    // setUser(userData);
+    // setCurrentStep('wallet');
+  }, []);
+
   // Memoize container styles to prevent recreation
   const containerStyles = useMemo(() => ({
     px: { xs: 1, sm: 2, md: 3 },
@@ -78,7 +99,13 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <div>
-        {currentStep === 'shopping' || currentStep === 'confirmation' ? (
+        {/* REGISTRATION: Uncomment below to show registration page */}
+        {showRegistration ? (
+          <UserRegistration 
+            onBack={handleRegistrationBack}
+            onRegistrationComplete={handleRegistrationComplete}
+          />
+        ) : currentStep === 'shopping' || currentStep === 'confirmation' ? (
           // Full screen for shopping and confirmation
           <>
             {currentStep === 'shopping' && user && (
@@ -106,7 +133,7 @@ function App() {
             sx={containerStyles}
           >
             {currentStep === 'welcome' && (
-              <WelcomeKiosk onLogin={handleLogin} />
+              <WelcomeKiosk onLogin={handleLogin} onRegister={handleShowRegistration} />
             )}
             {currentStep === 'wallet' && user && (
               <WalletDisplay user={user} onContinue={handleContinueShopping} />

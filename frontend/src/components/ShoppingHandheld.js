@@ -41,7 +41,11 @@ import { getCart, getCartTotal, updateCartItem, removeCartItem } from '../api';
 import AppHeader from './AppHeader';
 
 // Memoized Cart Summary - Only re-renders when cart or total changes
-const CartSummary = React.memo(({ cart, total }) => (
+const CartSummary = React.memo(({ cart, total }) => {
+  // Handle both number and object format for total
+  const totalAmount = typeof total === 'object' ? (total.total || 0) : (total || 0);
+  
+  return (
   <Card 
     sx={{ 
       mb: { xs: 1.5, sm: 2 }, 
@@ -73,14 +77,15 @@ const CartSummary = React.memo(({ cart, total }) => (
               lineHeight: 1.2
             }}
           >
-            ₹{total.toFixed(2)}
+            ₹{Number(totalAmount).toFixed(2)}
           </Typography>
         </Box>
         <ShoppingCartIcon sx={{ fontSize: { xs: 30, sm: 35, md: 40 }, opacity: 0.7 }} />
       </Box>
     </CardContent>
   </Card>
-));
+  );
+});
 
 // Memoized Cart Item - Only re-renders when THIS item's data changes
 const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) => (
@@ -224,9 +229,15 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
         const cartResponse = await getCart(userId);
         const totalResponse = await getCartTotal(userId);
         onUpdateCart(cartResponse.data, totalResponse.data);
+        setError(''); // Clear any previous errors
         setLoading(false);
       } catch (err) {
-        setError('Failed to load cart.');
+        // Only show error if cart data is critical (not just empty)
+        console.error('Cart load error:', err);
+        // Don't show error for empty cart - that's normal
+        if (err.response?.status !== 404) {
+          setError('Failed to load cart.');
+        }
         setLoading(false);
       }
     };
@@ -435,7 +446,7 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
                     fontSize: { xs: '1.2rem', sm: '1.5rem', md: '1.75rem', lg: '2rem' }
                   }}
                 >
-                  ₹{total.toFixed(2)}
+                  ₹{Number(typeof total === 'object' ? (total.total || 0) : (total || 0)).toFixed(2)}
                 </Typography>
               </Box>
               <Button

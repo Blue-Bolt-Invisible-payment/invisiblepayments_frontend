@@ -162,19 +162,39 @@ export const captureFingerprintUniversal = async () => {
  */
 const captureViaWebAuthn = async () => {
   try {
+    // Fetch all registered credentials from backend
+    let allowCredentials = [];
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/credentials');
+      const credentialIds = await response.json();
+      
+      // Convert credential IDs to the format WebAuthn expects
+      allowCredentials = credentialIds.map(id => ({
+        id: base64ToArrayBuffer(id),
+        type: 'public-key'
+      }));
+      
+      console.log('Fetched credentials for authentication:', allowCredentials.length);
+      
+      if (allowCredentials.length === 0) {
+        throw new Error('No registered users found. Please register first.');
+      }
+    } catch (err) {
+      console.error('Failed to fetch credentials:', err);
+      throw new Error('No registered users found. Please register first.');
+    }
+
     // Generate random challenge (in production, get this from backend)
     const challenge = new Uint8Array(32);
     window.crypto.getRandomValues(challenge);
 
-    // Request fingerprint authentication
-    // NOTE: This will fail if user hasn't enrolled via enrollFingerprint()
+    // Request fingerprint authentication - platform authenticator only
     const credential = await navigator.credentials.get({
       publicKey: {
         challenge: challenge,
         timeout: 60000,
-        userVerification: 'required', // Force biometric
-        rpId: window.location.hostname,
-        allowCredentials: [] // Allow any registered credential (empty = any)
+        userVerification: 'required',
+        allowCredentials: allowCredentials
       }
     });
 
@@ -204,8 +224,10 @@ const captureViaWebAuthn = async () => {
 /**
  * Method 2: Android Biometric API (for Android apps/PWAs)
  */
+
 const captureViaAndroid = async () => {
   try {
+
     // This requires Android WebView or Cordova/Capacitor plugin
     // For web, falls back to WebAuthn
     
@@ -321,6 +343,18 @@ const arrayBufferToBase64 = (buffer) => {
 };
 
 /**
+ * Helper: Convert Base64 to ArrayBuffer
+ */
+const base64ToArrayBuffer = (base64) => {
+  const binaryString = window.atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+};
+
+/**
  * Enroll new fingerprint (for user registration)
  */
 export const enrollFingerprint = async (userId, userName) => {
@@ -336,8 +370,7 @@ export const enrollFingerprint = async (userId, userName) => {
       publicKey: {
         challenge: challenge,
         rp: {
-          name: 'Cognizant SmartPay',
-          id: window.location.hostname
+          name: 'Cognizant SmartPay'
         },
         user: {
           id: userIdBytes,
@@ -349,9 +382,10 @@ export const enrollFingerprint = async (userId, userName) => {
           { alg: -257, type: 'public-key' } // RS256
         ],
         authenticatorSelection: {
-          authenticatorAttachment: 'platform', // Built-in sensor
+          authenticatorAttachment: 'platform',
           userVerification: 'required',
-          requireResidentKey: false
+          requireResidentKey: false,
+          residentKey: 'discouraged'
         },
         timeout: 60000,
         attestation: 'direct'
@@ -360,6 +394,7 @@ export const enrollFingerprint = async (userId, userName) => {
 
     // Send enrollment data to backend
     const enrollmentData = {
+      method: 'webauthn',  // Add method field for backend
       userId: userId,
       credentialId: arrayBufferToBase64(credential.rawId),
       publicKey: arrayBufferToBase64(credential.response.getPublicKey()),

@@ -34,9 +34,12 @@ const CartReview = ({ user, cart, total, onPayment, onBack }) => {
       return;
     }
 
+    // Handle total as both number and object
+    const totalAmount = typeof total === 'object' ? (total.total || 0) : (total || 0);
+
     // Validation: Check if wallet has sufficient balance
-    if (user.walletBalance < total) {
-      setError(`Insufficient Wallet Balance. You need ₹${(total - user.walletBalance).toFixed(2)} more to complete this purchase.`);
+    if (user.walletBalance < totalAmount) {
+      setError(`Insufficient Wallet Balance. You need ₹${(totalAmount - user.walletBalance).toFixed(2)} more to complete this purchase.`);
       return;
     }
 
@@ -186,7 +189,7 @@ const CartReview = ({ user, cart, total, onPayment, onBack }) => {
                   Subtotal:
                 </Typography>
                 <Typography sx={{ fontFamily: 'Gallix, sans-serif', color: '#000048', fontWeight: 'bold' }}>
-                  ₹{total.toFixed(2)}
+                  ₹{Number(typeof total === 'object' ? (total.total || 0) : (total || 0)).toFixed(2)}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -203,7 +206,7 @@ const CartReview = ({ user, cart, total, onPayment, onBack }) => {
                   Total Amount:
                 </Typography>
                 <Typography variant="h5" sx={{ fontFamily: 'Gallix, sans-serif', color: '#000048', fontWeight: 'bold' }}>
-                  ₹{total.toFixed(2)}
+                  ₹{Number(typeof total === 'object' ? (total.total || 0) : (total || 0)).toFixed(2)}
                 </Typography>
               </Box>
             </Box>
@@ -229,10 +232,16 @@ const CartReview = ({ user, cart, total, onPayment, onBack }) => {
                   sx={{ 
                     fontFamily: 'Gallix, sans-serif', 
                     fontWeight: 'bold',
-                    color: user.walletBalance - total >= 0 ? '#4caf50' : '#f44336'
+                    color: (() => {
+                      const totalAmount = typeof total === 'object' ? (total.total || 0) : (total || 0);
+                      return user.walletBalance - totalAmount >= 0 ? '#4caf50' : '#f44336';
+                    })()
                   }}
                 >
-                  ₹{(user.walletBalance - total).toFixed(2)}
+                  ₹{(() => {
+                    const totalAmount = typeof total === 'object' ? (total.total || 0) : (total || 0);
+                    return (user.walletBalance - totalAmount).toFixed(2);
+                  })()}
                 </Typography>
               </Box>
               <AccountBalanceWalletIcon sx={{ fontSize: 60, opacity: 0.7 }} />
@@ -323,7 +332,7 @@ const CartReview = ({ user, cart, total, onPayment, onBack }) => {
                 fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
                 mb: 0.5
               }}>
-                <strong>Total Amount:</strong> ₹{total.toFixed(2)}
+                <strong>Total Amount:</strong> ₹{Number(typeof total === 'object' ? (total.total || 0) : (total || 0)).toFixed(2)}
               </Typography>
               <Typography sx={{ 
                 fontFamily: 'Gallix, sans-serif', 

@@ -12,7 +12,7 @@ import {
   getBiometricStatus 
 } from '../utils/biometricUtils';
 
-const WelcomeKiosk = ({ onLogin }) => {
+const WelcomeKiosk = ({ onLogin, onRegister }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [deviceStatus, setDeviceStatus] = useState({ available: false, message: 'Detecting...', deviceType: 'None' });
@@ -43,7 +43,7 @@ const WelcomeKiosk = ({ onLogin }) => {
     setError('Authentication failed. Please try again.');
     
     // Uncomment below code when backend is ready:
-    /*
+    
     try {
       setLoading(true);
       setError('');
@@ -85,7 +85,7 @@ const WelcomeKiosk = ({ onLogin }) => {
         setError(err.message || 'Fingerprint authentication failed. Please use Test Mode below.');
       }
     }
-    */
+    
   };
 
   // Get icon based on device type
@@ -278,7 +278,7 @@ const WelcomeKiosk = ({ onLogin }) => {
         
         {/*        TESTING MODE SECTION - START       */}
         {/* Uncomment this block to enable test mode login */}
-        <Box sx={{ mt: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, borderTop: '1px dashed #ccc' }}>
+        {/* <Box sx={{ mt: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, borderTop: '1px dashed #ccc' }}>
           <Typography 
             variant="caption" 
             sx={{ 
@@ -323,7 +323,7 @@ const WelcomeKiosk = ({ onLogin }) => {
           >
             🚀 TEST LOGIN AS FARHEEN (BYPASS FINGERPRINT)
           </Button>
-        </Box>
+        </Box> */}
         {/*          TESTING MODE SECTION - END         */}
         
         
@@ -344,6 +344,33 @@ const WelcomeKiosk = ({ onLogin }) => {
             : 'No biometric sensor detected. Please use test mode or contact support.'
           }
         </Typography>
+
+        {/* REGISTRATION BUTTON - Uncomment below to show registration link */}
+        
+        <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #e0e0e0' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, textAlign: 'center' }}>
+            Don't have an account?
+          </Typography>
+          <Button
+            variant="outlined"
+            onClick={onRegister}
+            fullWidth
+            sx={{
+              py: 1,
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+              borderColor: '#000048',
+              color: '#000048',
+              '&:hover': {
+                borderColor: '#000048',
+                bgcolor: 'rgba(0, 0, 72, 0.04)'
+              }
+            }}
+          >
+            Register New User
+          </Button>
+        </Box>
+        
       </Box>
     </Box>
   );

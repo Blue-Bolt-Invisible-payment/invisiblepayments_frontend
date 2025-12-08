@@ -20,9 +20,13 @@ const WalletDisplay = memo(({ user, onContinue }) => {
       try {
         const response = await getWalletBalance(user.id);
         setBalance(response.data);
+        setError(''); // Clear any previous errors
         setLoading(false);
       } catch (err) {
-        setError('Failed to load wallet balance.');
+        // Only show error if we don't have a fallback balance
+        if (!user.walletBalance && user.walletBalance !== 0) {
+          setError('Failed to load wallet balance.');
+        }
         // Fallback to user's wallet balance from authentication
         setBalance(user.walletBalance || 0);
         setLoading(false);
@@ -89,7 +93,7 @@ const WalletDisplay = memo(({ user, onContinue }) => {
                         fontSize: { xs: '1.4rem', sm: '1.6rem', md: '1.8rem' }
                       }}
                     >
-                      Hello, {user.name}!
+                      Hello, {user.name.split(' ')[0]}!
                     </Typography>
                     <VerifiedIcon sx={{ color: '#4caf50', fontSize: { xs: 22, sm: 24 } }} />
                   </Box>
