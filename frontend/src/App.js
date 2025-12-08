@@ -5,6 +5,7 @@ import WalletDisplay from './components/WalletDisplay';
 import ShoppingHandheld from './components/ShoppingHandheld';
 import CartReview from './components/CartReview';
 import PaymentConfirmation from './components/PaymentConfirmation';
+import InstallPrompt from './components/InstallPrompt';
 import { disableTestMode } from './api';
 
 function App() {
@@ -121,6 +122,9 @@ function App() {
             )}
           </Box>
         )}
+
+        {/* Install Prompt - Shows across all screens */}
+        <InstallPrompt />
       </div>
     </ThemeProvider>
   );

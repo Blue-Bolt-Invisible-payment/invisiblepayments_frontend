@@ -4,13 +4,13 @@
   "description": "Seamless shopping experience with invisible payment technology",
   "icons": [
     {
-      "src": "logo/ApplicationMainLogo-removebg-preview.png",
+      "src": "logo/ApplicationMainLogo1.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "logo/ApplicationMainLogo.png",
+      "src": "logo/ApplicationMainLogo1.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

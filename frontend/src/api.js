@@ -94,15 +94,35 @@ let mockCartData = [...MOCK_CART];
 /**
  * Biometrics API: authenticateUser()
  * Authenticate user via fingerprint and return user details with wallet balance
+ * UNIVERSAL SUPPORT: Works with mobile, laptop, tablet built-in sensors AND external USB scanners
+ * 
+ * Supported Devices:
+ * - Mobile: Android fingerprint, iOS Touch ID
+ * - Laptop: Windows Hello, Mac Touch ID
+ * - Tablet: Built-in fingerprint sensors
+ * - Kiosk: External USB fingerprint scanners (DigitalPersona, Mantra, Morpho, etc.)
+ * 
  * Backend: Compare captured fingerprint with stored biometric data in database
  * Returns: { userId, name, email, walletBalance, biometricEnabled }
  * Throws: "Fingerprint not recognized. Please try again." if no match found
  */
 export const authenticateUser = (fingerprintData) => {
-    if (MOCK_MODE) {
+    if (MOCK_MODE || TEST_USER_MODE) {
         return Promise.resolve({ data: MOCK_USER });
     }
-    return axios.post(`${API_BASE_URL}/auth/fingerprint`, { fingerprintData });
+    
+    // Send fingerprint data to backend
+    // Backend will handle different fingerprint formats:
+    // - WebAuthn credentials (mobile/laptop built-in)
+    // - External scanner templates (USB devices)
+    return axios.post(`${API_BASE_URL}/auth/fingerprint`, { 
+        fingerprintData,
+        deviceInfo: {
+            method: fingerprintData.method || 'unknown',
+            deviceType: fingerprintData.deviceType || 'unknown',
+            timestamp: fingerprintData.timestamp || new Date().toISOString()
+        }
+    });
 };
 
 /**

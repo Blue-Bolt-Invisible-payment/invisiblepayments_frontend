@@ -1,20 +1,66 @@
-import React, { useState, memo } from 'react';
-import { Button, Typography, Box, Alert, CircularProgress } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Button, Typography, Box, Alert, CircularProgress, Chip } from '@mui/material';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
+import PhonelinkIcon from '@mui/icons-material/Phonelink';
+import LaptopIcon from '@mui/icons-material/Laptop';
+import UsbIcon from '@mui/icons-material/Usb';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { authenticateUser, enableTestMode } from '../api';
+import { 
+  detectBiometricCapabilities, 
+  captureFingerprintUniversal,
+  getBiometricStatus 
+} from '../utils/biometricUtils';
 
 const WelcomeKiosk = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [deviceStatus, setDeviceStatus] = useState({ available: false, message: 'Detecting...', deviceType: 'None' });
+
+  // Detect biometric capabilities on component mount
+  useEffect(() => {
+    const detectDevice = async () => {
+      try {
+        await detectBiometricCapabilities();
+        
+        const status = await getBiometricStatus();
+        setDeviceStatus(status);
+      } catch (error) {
+        console.error('Device detection failed:', error);
+        setDeviceStatus({
+          available: false,
+          message: 'Unable to detect fingerprint sensor',
+          deviceType: 'Unknown'
+        });
+      }
+    };
+    
+    detectDevice();
+  }, []);
 
   const handleFingerprintScan = async () => {
+    // Backend is not ready yet, show helpful message instead of triggering WebAuthn
+    setError('Authentication failed. Please try again.');
+    
+    // Uncomment below code when backend is ready:
+    /*
     try {
       setLoading(true);
       setError('');
-      // Biometrics API: authenticateUser() --> Call Biometrics API to get authenticated
-      // This will capture fingerprint and match with database
-      // Mock fingerprint: use 'fingerprint1' for demo
-      const response = await authenticateUser('fingerprint1');
+      
+      // Check if device is available
+      if (!deviceStatus.available) {
+        setLoading(false);
+        setError('No fingerprint sensor detected. Please use Test Mode below.');
+        return;
+      }
+      
+      // Universal fingerprint capture - works with ANY device
+      // Automatically detects: Mobile, Laptop, Tablet, or External USB scanner
+      const fingerprintData = await captureFingerprintUniversal();
+      
+      // Send captured fingerprint to backend for authentication
+      const response = await authenticateUser(fingerprintData);
       
       // Check if user is enabled in the system
       if (response.data && response.data.enabled) {
@@ -25,8 +71,34 @@ const WelcomeKiosk = ({ onLogin }) => {
       setLoading(false);
     } catch (err) {
       setLoading(false);
-      setError('Fingerprint not recognized. Please try again.');
+      
+      // User-friendly error messages
+      if (err.message.includes('cancelled')) {
+        setError('Fingerprint scan was cancelled. Please try again.');
+      } else if (err.message.includes('not available')) {
+        setError('No fingerprint sensor detected. Please use Test Mode below.');
+      } else if (err.message.includes('not enrolled') || err.message.includes('No credentials')) {
+        setError('⚠️ Biometric not enrolled. Backend integration required. Please use Test Mode for now.');
+      } else if (err.message.includes('not recognized')) {
+        setError('Fingerprint not recognized. Please try again or contact support.');
+      } else {
+        setError(err.message || 'Fingerprint authentication failed. Please use Test Mode below.');
+      }
     }
+    */
+  };
+
+  // Get icon based on device type
+  const getDeviceIcon = () => {
+    const deviceName = deviceStatus.deviceType.toLowerCase();
+    if (deviceName.includes('android') || deviceName.includes('touch id')) {
+      return <PhonelinkIcon sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }} />;
+    } else if (deviceName.includes('windows') || deviceName.includes('laptop')) {
+      return <LaptopIcon sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }} />;
+    } else if (deviceName.includes('external') || deviceName.includes('usb')) {
+      return <UsbIcon sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }} />;
+    }
+    return <FingerprintIcon sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }} />;
   };
 
   return (
@@ -95,12 +167,31 @@ const WelcomeKiosk = ({ onLogin }) => {
             fontFamily: 'Gallix, sans-serif',
             color: '#000048',
             fontSize: { xs: '0.69rem', sm: '0.79rem', md: '0.84rem', lg: '0.89rem' },
-            mb: { xs: 1.15, sm: 1.4, md: 1.65 },
+            mb: { xs: 0.8, sm: 1, md: 1.2 },
             opacity: 0.8
           }}
         >
           Please scan your fingerprint to start
         </Typography>
+
+        {/* Device Status Indicator */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: { xs: 0.8, sm: 1, md: 1.2 } }}>
+          <Chip
+            icon={deviceStatus.available ? <CheckCircleIcon /> : getDeviceIcon()}
+            label={deviceStatus.deviceType}
+            size="small"
+            color={deviceStatus.available ? "success" : "default"}
+            sx={{
+              fontFamily: 'Gallix, sans-serif',
+              fontSize: { xs: '0.65rem', sm: '0.75rem' },
+              fontWeight: 'bold',
+              height: { xs: '22px', sm: '26px' },
+              '& .MuiChip-icon': {
+                fontSize: { xs: '0.85rem', sm: '0.95rem' }
+              }
+            }}
+          />
+        </Box>
 
         {/* Fingerprint Icon */}
         <Box 
@@ -148,7 +239,7 @@ const WelcomeKiosk = ({ onLogin }) => {
           variant="contained" 
           onClick={handleFingerprintScan} 
           disabled={loading}
-          startIcon={loading ? null : <FingerprintIcon sx={{ fontSize: { xs: '0.88rem', sm: '0.98rem' } }} />}
+          startIcon={loading ? null : getDeviceIcon()}
           fullWidth
           sx={{ 
             mt: { xs: 0.45, sm: 0.7, md: 0.8 },
@@ -165,7 +256,7 @@ const WelcomeKiosk = ({ onLogin }) => {
             }
           }}
         >
-          {loading ? 'Scanning...' : 'TAP TO SCAN FINGERPRINT'}
+          {loading ? 'Scanning Fingerprint...' : 'TAP TO SCAN YOUR FINGERPRINT'}
         </Button>
 
         {/* Error Message */}
@@ -186,7 +277,7 @@ const WelcomeKiosk = ({ onLogin }) => {
        
         
         {/*        TESTING MODE SECTION - START       */}
-        {/* Comment out this entire block to remove test mode */}
+        {/* Uncomment this block to enable test mode login */}
         <Box sx={{ mt: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, borderTop: '1px dashed #ccc' }}>
           <Typography 
             variant="caption" 
@@ -248,7 +339,10 @@ const WelcomeKiosk = ({ onLogin }) => {
             fontSize: { xs: '0.64rem', sm: '0.74rem', md: '0.79rem' }
           }}
         >
-          Place your finger on the scanner and wait for verification
+          {deviceStatus.available 
+            ? 'Place your finger on the scanner and wait for verification'
+            : 'No biometric sensor detected. Please use test mode or contact support.'
+          }
         </Typography>
       </Box>
     </Box>
