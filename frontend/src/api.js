@@ -250,7 +250,10 @@ export const getCartTotal = (userId) => {
         const total = mockCartData.reduce((sum, item) => sum + (item.item.price * item.quantity), 0);
         return Promise.resolve({ data: total });
     }
-    return axios.get(`${API_BASE_URL}/cart/${userId}/total`);
+    return axios.get(`${API_BASE_URL}/cart/${userId}/total`).then(response => {
+        // Extract the total value from the response map
+        return { data: response.data.total };
+    });
 };
 
 /**

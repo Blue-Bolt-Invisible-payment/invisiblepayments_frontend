@@ -8,7 +8,7 @@ import PaymentConfirmation from './components/PaymentConfirmation';
 import InstallPrompt from './components/InstallPrompt';
 // REGISTRATION: Uncomment below to enable user registration page
 import UserRegistration from './components/UserRegistration';
-import { disableTestMode } from './api';
+import { disableTestMode, getCart, getCartTotal } from './api';
 
 function App() {
   const [currentStep, setCurrentStep] = useState('welcome');
@@ -43,9 +43,20 @@ function App() {
     setCurrentStep('shopping');
   }, []);
 
-  const handleEndShopping = useCallback(() => {
+  const handleEndShopping = useCallback(async () => {
+    // Refresh cart data from database before showing review
+    if (user) {
+      try {
+        const cartResponse = await getCart(user.id);
+        const totalResponse = await getCartTotal(user.id);
+        setCart(cartResponse.data);
+        setTotal(totalResponse.data);
+      } catch (error) {
+        console.error('Failed to refresh cart for review:', error);
+      }
+    }
     setCurrentStep('review');
-  }, []);
+  }, [user]);
 
   const handlePayment = useCallback(() => {
     setCurrentStep('confirmation');
@@ -59,9 +70,20 @@ function App() {
     setTotal(0);
   }, []);
 
-  const handleBackToShopping = useCallback(() => {
+  const handleBackToShopping = useCallback(async () => {
+    // Refresh cart data from database when going back to shopping
+    if (user) {
+      try {
+        const cartResponse = await getCart(user.id);
+        const totalResponse = await getCartTotal(user.id);
+        setCart(cartResponse.data);
+        setTotal(totalResponse.data);
+      } catch (error) {
+        console.error('Failed to refresh cart:', error);
+      }
+    }
     setCurrentStep('shopping');
-  }, []);
+  }, [user]);
 
   const updateCart = useCallback((newCart, newTotal) => {
     setCart(newCart);
