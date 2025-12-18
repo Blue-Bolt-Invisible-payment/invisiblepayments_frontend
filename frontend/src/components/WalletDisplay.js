@@ -10,7 +10,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 import { getWalletBalance } from '../api';
 import AppHeader from './AppHeader';
 
-const WalletDisplay = memo(({ user, onContinue }) => {
+const WalletDisplay = memo(({ user, onContinue,onLogout }) => {
   const [balance, setBalance] = useState(user.walletBalance || 0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -39,7 +39,9 @@ const WalletDisplay = memo(({ user, onContinue }) => {
   return (
     <>
       {/* Header */}
-      <AppHeader user={user} />
+      {/* Header */}
+      <AppHeader user={user} onLogout={onLogout} />
+
 
       {/* Page Content */}
       <Box 

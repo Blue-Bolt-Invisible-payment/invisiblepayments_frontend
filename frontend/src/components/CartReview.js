@@ -21,7 +21,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import AppHeader from './AppHeader';
 
-const CartReview = ({ user, cart, total, onPayment, onBack }) => {
+const CartReview = ({ user, cart, total, onPayment, onBack,onLogout }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [error, setError] = useState('');
 
@@ -59,7 +59,7 @@ const CartReview = ({ user, cart, total, onPayment, onBack }) => {
   return (
     <>
       {/* Header */}
-      <AppHeader user={user} />
+      <AppHeader user={user} onLogout={onLogout} />
 
       {/* Page Content */}
       <Box 

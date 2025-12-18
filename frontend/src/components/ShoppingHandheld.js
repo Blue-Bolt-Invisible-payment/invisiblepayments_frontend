@@ -1,6 +1,6 @@
 /*
  * ShoppingHandheld Component - RFID Shopping Cart Interface
- * 
+ *
  * ZERO FLICKERING ARCHITECTURE:
  * - Component is wrapped in React.memo to prevent unnecessary re-renders
  * - Cart loads ONCE on mount, NO polling to prevent constant re-renders
@@ -8,23 +8,23 @@
  * - UI updates instantly, then syncs with backend in background
  * - Parent App.js uses comparison to prevent state updates when data hasn't changed
  * - Header is memoized to never re-render unless dependencies change
- * 
+ *
  * RFID SCANNER INTEGRATION:
  * - When RFID scanner detects new product, call handleRefreshCart()
  * - This fetches latest cart without re-rendering entire screen
  * - Only the cart list updates, everything else stays static
  * - For demo: Use "Refresh Cart" button in header to simulate RFID scan
- * 
+ *
  * NO MORE FLICKERING - COMPLETELY STATIC UI WITH DYNAMIC CART UPDATES
  */
-
+ 
 import React, { useEffect, useState, useCallback } from 'react';
-import { 
-  Button, 
-  Typography, 
-  Box, 
-  List, 
-  Alert, 
+import {
+  Button,
+  Typography,
+  Box,
+  List,
+  Alert,
   ListItemAvatar,
   Avatar,
   IconButton,
@@ -37,18 +37,18 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RfidIcon from '@mui/icons-material/Nfc';
-import { getCart, getCartTotal, updateCartItem, removeCartItem } from '../api';
+import { getCart, getCartTotal, updateCartItem, removeCartItem, addItemsToCart } from '../api';
 import AppHeader from './AppHeader';
-
+ 
 // Memoized Cart Summary - Only re-renders when cart or total changes
 const CartSummary = React.memo(({ cart, total }) => {
   // Handle both number and object format for total
   const totalAmount = typeof total === 'object' ? (total.total || 0) : (total || 0);
-  
+ 
   return (
-  <Card 
-    sx={{ 
-      mb: { xs: 1.5, sm: 2 }, 
+  <Card
+    sx={{
+      mb: { xs: 1.5, sm: 2 },
       bgcolor: '#000048',
       color: '#ffffff',
       borderRadius: { xs: 2, sm: 3 }
@@ -57,9 +57,9 @@ const CartSummary = React.memo(({ cart, total }) => {
     <CardContent sx={{ p: { xs: '8px 12px', sm: '10px 16px', md: '12px 20px' }, '&:last-child': { pb: { xs: '8px', sm: '10px', md: '12px' } } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 0.8 }}>
         <Box sx={{ lineHeight: 1.2 }}>
-          <Typography 
-            variant="h6" 
-            sx={{ 
+          <Typography
+            variant="h6"
+            sx={{
               fontFamily: 'Gallix, sans-serif',
               mb: 0.2,
               fontSize: { xs: '0.8rem', sm: '0.9rem', md: '0.95rem' },
@@ -68,9 +68,9 @@ const CartSummary = React.memo(({ cart, total }) => {
           >
             Total Items: {cart.reduce((sum, item) => sum + item.quantity, 0)}
           </Typography>
-          <Typography 
-            variant="h4" 
-            sx={{ 
+          <Typography
+            variant="h4"
+            sx={{
               fontFamily: 'Gallix, sans-serif',
               fontWeight: 'bold',
               fontSize: { xs: '1rem', sm: '1.15rem', md: '1.3rem', lg: '1.45rem' },
@@ -86,11 +86,11 @@ const CartSummary = React.memo(({ cart, total }) => {
   </Card>
   );
 });
-
+ 
 // Memoized Cart Item - Only re-renders when THIS item's data changes
 const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) => (
   <Paper
-    sx={{ 
+    sx={{
       mb: { xs: 0.8, sm: 1, md: 1.2 },
       p: { xs: 1, sm: 1.2, md: 1.5 },
       bgcolor: '#ffffff',
@@ -112,11 +112,11 @@ const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) 
           }}
         />
       </ListItemAvatar>
-      
+     
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography 
-          variant="h6" 
-          sx={{ 
+        <Typography
+          variant="h6"
+          sx={{
             fontFamily: 'Gallix, sans-serif',
             color: '#000048',
             fontWeight: 'bold',
@@ -126,9 +126,9 @@ const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) 
         >
           {cartItem.item.name}
         </Typography>
-        <Typography 
-          variant="body2" 
-          sx={{ 
+        <Typography
+          variant="body2"
+          sx={{
             fontFamily: 'Gallix, sans-serif',
             color: '#000048',
             opacity: 0.7,
@@ -138,9 +138,9 @@ const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) 
         >
           {cartItem.item.brand} • {cartItem.item.unit}
         </Typography>
-        <Typography 
-          variant="h6" 
-          sx={{ 
+        <Typography
+          variant="h6"
+          sx={{
             fontFamily: 'Gallix, sans-serif',
             color: '#000048',
             fontWeight: 'bold',
@@ -150,12 +150,12 @@ const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) 
           ₹{cartItem.item.price.toFixed(2)} × {cartItem.quantity} = ₹{(cartItem.item.price * cartItem.quantity).toFixed(2)}
         </Typography>
       </Box>
-
+ 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.6, sm: 0.8, md: 1 } }}>
         {/* Quantity Controls */}
-        <Box 
-          sx={{ 
-            display: 'flex', 
+        <Box
+          sx={{
+            display: 'flex',
             alignItems: 'center',
             border: { xs: '1.5px solid #000048', sm: '2px solid #000048' },
             borderRadius: { xs: 1, sm: 1.5 },
@@ -165,7 +165,7 @@ const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) 
           <IconButton
             size="small"
             onClick={() => onQuantityChange(cartItem.id, cartItem.quantity - 1)}
-            sx={{ 
+            sx={{
               color: '#000048',
               padding: { xs: '3px', sm: '4px', md: '5px' },
               '&:hover': { bgcolor: '#000048', color: '#ffffff' }
@@ -173,8 +173,8 @@ const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) 
           >
             <RemoveIcon sx={{ fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' } }} />
           </IconButton>
-          <Typography 
-            sx={{ 
+          <Typography
+            sx={{
               px: { xs: 0.8, sm: 1, md: 1.2 },
               fontFamily: 'Gallix, sans-serif',
               color: '#000048',
@@ -187,7 +187,7 @@ const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) 
           <IconButton
             size="small"
             onClick={() => onQuantityChange(cartItem.id, cartItem.quantity + 1)}
-            sx={{ 
+            sx={{
               color: '#000048',
               padding: { xs: '3px', sm: '4px', md: '5px' },
               '&:hover': { bgcolor: '#000048', color: '#ffffff' }
@@ -196,16 +196,16 @@ const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) 
             <AddIcon sx={{ fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' } }} />
           </IconButton>
         </Box>
-
+ 
         {/* Remove Button */}
         <IconButton
           size="small"
           onClick={() => onRemove(cartItem.id)}
-          sx={{ 
+          sx={{
             color: '#dc004e',
             bgcolor: '#ffebee',
             padding: { xs: '5px', sm: '6px', md: '7px' },
-            '&:hover': { 
+            '&:hover': {
               bgcolor: '#dc004e',
               color: '#ffffff'
             }
@@ -217,11 +217,24 @@ const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) 
     </Box>
   </Paper>
 ));
-
-const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShopping }) => {
+ 
+const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShopping,onLogout }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-
+  const [showManualAdd, setShowManualAdd] = useState(false);
+ 
+  // ========== MANUAL PRODUCT ADDITION - START ==========
+  // Predefined products with RFID codes for testing
+  const availableProducts = [
+    { id: 1, name: 'Fresh Apples', brand: 'Farm Fresh', price: 120, mrp: 150, unit: '1 kg', rfidTag: 'RFID0001' },
+    { id: 2, name: 'Bananas', brand: 'Organic', price: 50, mrp: 60, unit: '1 dozen', rfidTag: 'RFID0002' },
+    { id: 3, name: 'Oranges', brand: 'Citrus Fresh', price: 85, mrp: 100, unit: '1 kg', rfidTag: 'RFID0003' },
+    { id: 6, name: 'Tomatoes', brand: 'Fresh Farm', price: 35, mrp: 40, unit: '1 kg', rfidTag: 'RFID0006' },
+    { id: 11, name: 'Full Cream Milk', brand: 'Amul', price: 58, mrp: 60, unit: '1 liter', rfidTag: 'RFID0011' },
+    { id: 16, name: 'White Bread', brand: 'Britannia', price: 40, mrp: 45, unit: '400g', rfidTag: 'RFID0016' }
+  ];
+  // ========== MANUAL PRODUCT ADDITION - END ============
+ 
   // Load cart ONCE on mount - COMPLETELY STATIC, NO RE-RENDERS
   useEffect(() => {
     const fetchCart = async () => {
@@ -241,21 +254,21 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
         setLoading(false);
       }
     };
-    
+   
     fetchCart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty array - runs ONLY ONCE, never again
-
+ 
   const handleQuantityChange = useCallback(async (cartItemId, newQuantity) => {
     if (newQuantity < 1) return;
-    
+   
     // Optimistically update UI immediately for instant feedback
     const updatedCart = cart.map(item =>
       item.id === cartItemId ? { ...item, quantity: newQuantity } : item
     );
     const newTotal = updatedCart.reduce((sum, item) => sum + (item.item.price * item.quantity), 0);
     onUpdateCart(updatedCart, newTotal);
-    
+   
     // Then sync with backend silently
     try {
       await updateCartItem(userId, cartItemId, newQuantity);
@@ -268,13 +281,13 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
       onUpdateCart(cartResponse.data, totalResponse.data);
     }
   }, [cart, userId, onUpdateCart]);
-
+ 
   const handleRemoveItem = useCallback(async (cartItemId) => {
     // Optimistically update UI immediately
     const updatedCart = cart.filter(item => item.id !== cartItemId);
     const newTotal = updatedCart.reduce((sum, item) => sum + (item.item.price * item.quantity), 0);
     onUpdateCart(updatedCart, newTotal);
-    
+   
     // Then sync with backend silently
     try {
       await removeCartItem(userId, cartItemId);
@@ -287,7 +300,7 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
       onUpdateCart(cartResponse.data, totalResponse.data);
     }
   }, [cart, userId, onUpdateCart]);
-
+ 
   // Manual refresh for RFID scanner - only call this when new item is scanned
   const handleRefreshCart = useCallback(async () => {
     try {
@@ -298,16 +311,38 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
       setError('Failed to refresh cart.');
     }
   }, [cart, userId, onUpdateCart]);
-
+ 
+  // ========== MANUAL PRODUCT ADDITION - START ==========
+  const handleAddManualProduct = useCallback(async (product) => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Call backend API to add item using RFID tag
+      await addItemsToCart(userId, product.rfidTag);
+      
+      // Refresh cart after adding
+      const cartResponse = await getCart(userId);
+      const totalResponse = await getCartTotal(userId);
+      onUpdateCart(cartResponse.data, totalResponse.data);
+      
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      setError(`Failed to add ${product.name}: ${err.response?.data?.message || err.message}`);
+    }
+  }, [userId, onUpdateCart]);
+  // ========== MANUAL PRODUCT ADDITION - END ============
+ 
   return (
     <>
       {/* Header */}
-      <AppHeader user={user} />
-
+      <AppHeader user={user} onLogout={onLogout} />
+ 
       {/* Page Content */}
-      <Box 
-        sx={{ 
-          width: '100%', 
+      <Box
+        sx={{
+          width: '100%',
           minHeight: '100vh',
           bgcolor: '#f5f5f5',
           pt: { xs: '70px', sm: '85px', md: '95px', lg: '100px' },
@@ -315,8 +350,8 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
         }}
       >
         {/* Page Title and RFID Info */}
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             px: { xs: 1.5, sm: 2.5, md: 3.5, lg: 4 },
             mb: { xs: 1.5, sm: 2, md: 2.5 }
           }}
@@ -348,19 +383,70 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
             </Box>
           </Box>
         </Box>
-
+ 
         {/* Main Content */}
         <Box sx={{ maxWidth: { xs: '100%', sm: 900, md: 1100, lg: 1200 }, mx: 'auto', px: { xs: 1.5, sm: 2.5, md: 3.5, lg: 4 } }}>
           {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-
+ 
+        {/* ========== MANUAL PRODUCT ADDITION - START ========== */}
+        {/* Manual Add Products Button */}
+        <Button
+          variant="outlined"
+          onClick={() => setShowManualAdd(!showManualAdd)}
+          sx={{
+            mb: 2,
+            borderColor: '#000048',
+            color: '#000048',
+            fontFamily: 'Gallix, sans-serif',
+            fontWeight: 'bold',
+            '&:hover': { borderColor: '#000066', bgcolor: 'rgba(0, 0, 72, 0.04)' }
+          }}
+        >
+          {showManualAdd ? 'Hide' : 'Add Products Manually'} (Demo Mode)
+        </Button>
+ 
+        {/* Available Products Grid */}
+        {showManualAdd && (
+          <Paper sx={{ p: 2, mb: 2, bgcolor: '#f9f9f9', borderRadius: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontFamily: 'Gallix, sans-serif', color: '#000048', fontWeight: 'bold' }}>
+              Available Products (Click to Add)
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 1.5 }}>
+              {availableProducts.map(product => (
+                <Paper
+                  key={product.id}
+                  sx={{
+                    p: 1.5,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    '&:hover': { boxShadow: 3, transform: 'translateY(-2px)' }
+                  }}
+                  onClick={() => handleAddManualProduct(product)}
+                >
+                  <Typography sx={{ fontFamily: 'Gallix, sans-serif', fontWeight: 'bold', color: '#000048', fontSize: '0.9rem' }}>
+                    {product.name}
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Gallix, sans-serif', color: '#000048', opacity: 0.7, fontSize: '0.75rem' }}>
+                    {product.brand} • {product.rfidTag}
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Gallix, sans-serif', fontWeight: 'bold', color: '#4caf50', fontSize: '0.85rem', mt: 0.5 }}>
+                    ₹{product.price.toFixed(2)}
+                  </Typography>
+                </Paper>
+              ))}
+            </Box>
+          </Paper>
+        )}
+        {/* ========== MANUAL PRODUCT ADDITION - END ============ */}
+ 
         {/* Cart Summary Card - Only updates when cart/total changes */}
         <CartSummary cart={cart} total={total} />
-
+ 
         {/* Cart Items */}
         {loading ? (
           <Paper sx={{ p: { xs: 2.5, sm: 3.5, md: 4 }, textAlign: 'center' }}>
-            <Typography 
-              sx={{ 
+            <Typography
+              sx={{
                 fontFamily: 'Gallix, sans-serif',
                 color: '#000048',
                 fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' }
@@ -370,18 +456,18 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
             </Typography>
           </Paper>
         ) : cart.length === 0 ? (
-          <Paper 
-            sx={{ 
-              p: { xs: 3, sm: 4.5, md: 6 }, 
+          <Paper
+            sx={{
+              p: { xs: 3, sm: 4.5, md: 6 },
               textAlign: 'center',
               bgcolor: '#ffffff',
               borderRadius: { xs: 2, sm: 2.5, md: 3 }
             }}
           >
             <RfidIcon sx={{ fontSize: { xs: 50, sm: 65, md: 80, lg: 90 }, color: '#000048', mb: { xs: 1.5, sm: 2 }, opacity: 0.5 }} />
-            <Typography 
-              variant="h5" 
-              sx={{ 
+            <Typography
+              variant="h5"
+              sx={{
                 fontFamily: 'Gallix, sans-serif',
                 color: '#000048',
                 mb: { xs: 1.5, sm: 2 },
@@ -391,8 +477,8 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
             >
               Your cart is empty
             </Typography>
-            <Typography 
-              sx={{ 
+            <Typography
+              sx={{
                 fontFamily: 'Gallix, sans-serif',
                 color: '#000048',
                 opacity: 0.7,
@@ -414,10 +500,10 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
                 />
               ))}
             </List>
-
+ 
             {/* Checkout Button */}
-            <Paper 
-              sx={{ 
+            <Paper
+              sx={{
                 p: { xs: 1.2, sm: 1.8, md: 2.5, lg: 3 },
                 bgcolor: '#ffffff',
                 position: 'sticky',
@@ -426,9 +512,9 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
               }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 0.8, sm: 1.2, md: 1.5 }, flexWrap: 'wrap', gap: { xs: 0.8, sm: 1 } }}>
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
+                <Typography
+                  variant="h5"
+                  sx={{
                     fontFamily: 'Gallix, sans-serif',
                     color: '#000048',
                     fontWeight: 'bold',
@@ -437,9 +523,9 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
                 >
                   Total Amount:
                 </Typography>
-                <Typography 
-                  variant="h4" 
-                  sx={{ 
+                <Typography
+                  variant="h4"
+                  sx={{
                     fontFamily: 'Gallix, sans-serif',
                     color: '#000048',
                     fontWeight: 'bold',
@@ -454,7 +540,7 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
                 fullWidth
                 size="large"
                 onClick={onEndShopping}
-                sx={{ 
+                sx={{
                   py: { xs: 1, sm: 1.3, md: 1.8, lg: 2.2 },
                   bgcolor: '#000048',
                   fontFamily: 'Gallix, sans-serif',
@@ -476,5 +562,5 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
     </>
   );
 };
-
+ 
 export default ShoppingHandheld;
