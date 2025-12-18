@@ -22,7 +22,7 @@ const PaymentConfirmation = ({ user, total, cart, onExit }) => {
   const [error, setError] = useState('');
   const [previousBalance, setPreviousBalance] = useState(0);
   const [newBalance, setNewBalance] = useState(0);
-
+ 
   // Handle total as object or number
   const totalAmount = typeof total === 'object' ? (total.total || 0) : (total || 0);
  
@@ -616,6 +616,27 @@ const PaymentConfirmation = ({ user, total, cart, onExit }) => {
  
             {/* Action Buttons */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
+              {/* <Button
+                variant="outlined"
+                startIcon={<ReceiptIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />}
+                onClick={handleDownloadReceipt}
+                fullWidth
+                sx={{
+                  py: { xs: 1.2, sm: 1.5, md: 2 },
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                  fontFamily: 'Gallix, sans-serif',
+                  fontWeight: 'bold',
+                  borderColor: '#000048',
+                  color: '#000048',
+                  borderRadius: { xs: 1.5, sm: 2 },
+                  '&:hover': {
+                    borderColor: '#000066',
+                    bgcolor: 'rgba(0, 0, 72, 0.04)'
+                  }
+                }}
+              >
+                Download Receipt
+              </Button> */}
               <Button
                 variant="contained"
                 onClick={onExit}
@@ -698,4 +719,3 @@ const PaymentConfirmation = ({ user, total, cart, onExit }) => {
 };
  
 export default PaymentConfirmation;
-

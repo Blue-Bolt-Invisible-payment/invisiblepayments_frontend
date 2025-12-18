@@ -218,7 +218,7 @@ const CartItemComponent = React.memo(({ cartItem, onQuantityChange, onRemove }) 
   </Paper>
 ));
  
-const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShopping,onLogout }) => {
+const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShopping }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [showManualAdd, setShowManualAdd] = useState(false);
@@ -337,7 +337,7 @@ const ShoppingHandheld = ({ userId, user, cart, total, onUpdateCart, onEndShoppi
   return (
     <>
       {/* Header */}
-      <AppHeader user={user} onLogout={onLogout} />
+      <AppHeader user={user} />
  
       {/* Page Content */}
       <Box
