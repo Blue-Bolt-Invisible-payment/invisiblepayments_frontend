@@ -27,6 +27,14 @@ function App() {
     setCurrentStep('welcome');
     disableTestMode();
   }, timeoutMs, !!user);
+
+  const resetSession = useCallback(() => {
+    setUser(null);
+    setCart([]);
+    setTotal(0);
+    setCurrentStep('welcome');
+    disableTestMode();
+  }, []);
  
   const theme = useMemo(() => createTheme({
     palette: {
@@ -139,6 +147,7 @@ function App() {
                 total={total}
                 onUpdateCart={updateCart}
                 onEndShopping={handleEndShopping}
+                onLogout={resetSession}
               />
             )}
             {currentStep === 'confirmation' && user && (
@@ -159,7 +168,7 @@ function App() {
               <WelcomeKiosk onLogin={handleLogin} onRegister={handleShowRegistration} />
             )}
             {currentStep === 'wallet' && user && (
-              <WalletDisplay user={user} onContinue={handleContinueShopping} />
+              <WalletDisplay user={user} onContinue={handleContinueShopping} onLogout={resetSession} />
             )}
             {currentStep === 'review' && user && (
               <CartReview
@@ -168,6 +177,7 @@ function App() {
                 total={total}
                 onPayment={handlePayment}
                 onBack={handleBackToShopping}
+                onLogout={resetSession}
               />
             )}
           </Box>
