@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import useInactivityTimeout from './hooks/useInactivityTimeout';
 import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import WelcomeKiosk from './components/WelcomeKiosk';
@@ -9,6 +9,9 @@ import PaymentConfirmation from './components/PaymentConfirmation';
 import InstallPrompt from './components/InstallPrompt';
 import UserRegistration from './components/UserRegistration';
 import { disableTestMode, getCart, getCartTotal } from './api';
+import SessionWarningBanner from './components/SessionWarningBanner';
+
+
  
  
 function App() {
@@ -27,6 +30,32 @@ function App() {
     setCurrentStep('welcome');
     disableTestMode();
   }, timeoutMs, !!user);
+
+const [showWarning, setShowWarning] = useState(false);
+
+// track inactivity separately
+useEffect(() => {
+  if (!user) return;
+
+  let activityTimer;
+  const resetActivity = () => {
+    clearTimeout(activityTimer);
+    setShowWarning(false);
+    activityTimer = setTimeout(() => {
+      setShowWarning(true); // after 10 min inactivity, show banner
+    }, 10 * 60 * 1000);
+  };
+
+  const events = ['mousedown','mousemove','keypress','scroll','touchstart','click'];
+  events.forEach(e => document.addEventListener(e, resetActivity, true));
+  resetActivity();
+
+  return () => {
+    clearTimeout(activityTimer);
+    events.forEach(e => document.removeEventListener(e, resetActivity, true));
+  };
+}, [user]);
+
 
   const resetSession = useCallback(() => {
     setUser(null);
@@ -182,7 +211,11 @@ function App() {
             )}
           </Box>
         )}
- 
+       <SessionWarningBanner
+       show={showWarning}
+       warningMs={300000} // 5 minutes
+       onExpire={resetSession}
+       />
         {/* Install Prompt - Shows across all screens */}
         <InstallPrompt />
       </div>
