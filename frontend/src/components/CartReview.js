@@ -20,10 +20,12 @@ import WarningIcon from '@mui/icons-material/Warning';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import AppHeader from './AppHeader';
+import PaymentScan from './PaymentScan';
 
 const CartReview = ({ user, cart, total, onPayment, onBack,onLogout  }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [error, setError] = useState('');
+  const [showPaymentScan, setShowPaymentScan] = useState(false);
 
   const handleCompleteShoppingClick = () => {
     setError('');
@@ -49,12 +51,24 @@ const CartReview = ({ user, cart, total, onPayment, onBack,onLogout  }) => {
 
   const handleConfirmPayment = () => {
     setOpenDialog(false);
-    onPayment();
+    // show the PaymentScan screen to authorize via fingerprint
+    setShowPaymentScan(true);
   };
 
   const handleCancelPayment = () => {
     setOpenDialog(false);
   };
+
+  // Called when PaymentScan authorizes the payment
+  const handleAuthorized = (authData) => {
+    setShowPaymentScan(false);
+    // forward to parent to complete payment processing
+    onPayment(authData);
+  };
+
+  if (showPaymentScan) {
+    return <PaymentScan onAuthorized={handleAuthorized} />;
+  }
 
   return (
     <>
