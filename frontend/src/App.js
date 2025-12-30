@@ -7,56 +7,19 @@ import ShoppingHandheld from './components/ShoppingHandheld';
 import CartReview from './components/CartReview';
 import PaymentConfirmation from './components/PaymentConfirmation';
 import InstallPrompt from './components/InstallPrompt';
-import UserRegistration from './components/UserRegistration';
 import { disableTestMode, getCart, getCartTotal } from './api';
 import SessionWarningBanner from './components/SessionWarningBanner';
 
-
- 
- 
 function App() {
   const [currentStep, setCurrentStep] = useState('welcome');
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [total, setTotal] = useState(0);
-  const [showRegistration, setShowRegistration] = useState(false);
- 
-  // Dynamic inactivity timeout: 30 seconds after payment, 15 minutes otherwise
-  const timeoutMs = currentStep === 'confirmation' ? 30000 : 900000;
-  useInactivityTimeout(() => {
-    setUser(null);
-    setCart([]);
-    setTotal(0);
-    setCurrentStep('welcome');
-    disableTestMode();
-  }, timeoutMs, !!user);
+  const [showWarning, setShowWarning] = useState(false);
 
-const [showWarning, setShowWarning] = useState(false);
-
-// track inactivity separately
-useEffect(() => {
-  if (!user) return;
-
-  let activityTimer;
-  const resetActivity = () => {
-    clearTimeout(activityTimer);
-    setShowWarning(false);
-    activityTimer = setTimeout(() => {
-      setShowWarning(true); // after 10 min inactivity, show banner
-    }, 10 * 60 * 1000);
-  };
-
-  const events = ['mousedown','mousemove','keypress','scroll','touchstart','click'];
-  events.forEach(e => document.addEventListener(e, resetActivity, true));
-  resetActivity();
-
-  return () => {
-    clearTimeout(activityTimer);
-    events.forEach(e => document.removeEventListener(e, resetActivity, true));
-  };
-}, [user]);
-
-
+  /**
+   * SESSION MANAGEMENT
+   */
   const resetSession = useCallback(() => {
     setUser(null);
     setCart([]);
@@ -64,7 +27,40 @@ useEffect(() => {
     setCurrentStep('welcome');
     disableTestMode();
   }, []);
- 
+
+  // Dynamic inactivity timeout: 30s after payment, 15m otherwise
+  const timeoutMs = currentStep === 'confirmation' ? 30000 : 900000;
+  
+  useInactivityTimeout(() => {
+    resetSession();
+  }, timeoutMs, !!user);
+
+  // Separate effect for the Warning Banner logic
+  useEffect(() => {
+    if (!user) return;
+
+    let activityTimer;
+    const resetActivity = () => {
+      clearTimeout(activityTimer);
+      setShowWarning(false);
+      activityTimer = setTimeout(() => {
+        setShowWarning(true); // After 10 min inactivity, show banner
+      }, 10 * 60 * 1000);
+    };
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    events.forEach(e => document.addEventListener(e, resetActivity, true));
+    resetActivity();
+
+    return () => {
+      clearTimeout(activityTimer);
+      events.forEach(e => document.removeEventListener(e, resetActivity, true));
+    };
+  }, [user]);
+
+  /**
+   * THEME CONFIGURATION
+   */
   const theme = useMemo(() => createTheme({
     palette: {
       primary: {
@@ -78,16 +74,19 @@ useEffect(() => {
       fontFamily: 'Gallix, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
   }), []);
- 
+
+  /**
+   * NAVIGATION HANDLERS
+   */
   const handleLogin = useCallback((loggedUser) => {
     setUser(loggedUser);
     setCurrentStep('wallet');
   }, []);
- 
+
   const handleContinueShopping = useCallback(() => {
     setCurrentStep('shopping');
   }, []);
- 
+
   const handleEndShopping = useCallback(async () => {
     if (user) {
       try {
@@ -101,19 +100,11 @@ useEffect(() => {
     }
     setCurrentStep('review');
   }, [user]);
- 
+
   const handlePayment = useCallback(() => {
     setCurrentStep('confirmation');
   }, []);
- 
-  const handleExit = useCallback(() => {
-    disableTestMode();
-    setCurrentStep('welcome');
-    setUser(null);
-    setCart([]);
-    setTotal(0);
-  }, []);
- 
+
   const handleBackToShopping = useCallback(async () => {
     if (user) {
       try {
@@ -127,24 +118,15 @@ useEffect(() => {
     }
     setCurrentStep('shopping');
   }, [user]);
- 
+
   const updateCart = useCallback((newCart, newTotal) => {
     setCart(newCart);
     setTotal(newTotal);
   }, []);
- 
-  const handleShowRegistration = useCallback(() => {
-    setShowRegistration(true);
-  }, []);
- 
-  const handleRegistrationBack = useCallback(() => {
-    setShowRegistration(false);
-  }, []);
- 
-  const handleRegistrationComplete = useCallback((userData) => {
-    setShowRegistration(false);
-  }, []);
- 
+
+  /**
+   * STYLES
+   */
   const containerStyles = useMemo(() => ({
     px: { xs: 1, sm: 2, md: 3 },
     py: { xs: 2, sm: 3, md: 4 },
@@ -155,18 +137,13 @@ useEffect(() => {
     justifyContent: 'center',
     bgcolor: '#f5f5f5'
   }), []);
- 
+
   return (
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <div>
-        {/* REGISTRATION: Uncomment below to show registration page */}
-        {showRegistration ? (
-          <UserRegistration
-            onBack={handleRegistrationBack}
-            onRegistrationComplete={handleRegistrationComplete}
-          />
-        ) : currentStep === 'shopping' || currentStep === 'confirmation' ? (
-          // Full screen for shopping and confirmation
+        {/* Full screen layouts for Shopping and Confirmation */}
+        {currentStep === 'shopping' || currentStep === 'confirmation' ? (
           <>
             {currentStep === 'shopping' && user && (
               <ShoppingHandheld
@@ -184,20 +161,22 @@ useEffect(() => {
                 user={user}
                 cart={cart}
                 total={total}
-                onExit={handleExit}
+                onExit={resetSession}
               />
             )}
           </>
         ) : (
-          // Centered container for welcome, wallet, and review
-          <Box
-            sx={containerStyles}
-          >
+          /* Centered container for Welcome, Wallet, and Review */
+          <Box sx={containerStyles}>
             {currentStep === 'welcome' && (
-              <WelcomeKiosk onLogin={handleLogin} onRegister={handleShowRegistration} />
+              <WelcomeKiosk onLogin={handleLogin} />
             )}
             {currentStep === 'wallet' && user && (
-              <WalletDisplay user={user} onContinue={handleContinueShopping} onLogout={resetSession} />
+              <WalletDisplay 
+                user={user} 
+                onContinue={handleContinueShopping} 
+                onLogout={resetSession} 
+              />
             )}
             {currentStep === 'review' && user && (
               <CartReview
@@ -211,16 +190,17 @@ useEffect(() => {
             )}
           </Box>
         )}
-       <SessionWarningBanner
-       show={showWarning}
-       warningMs={300000} // 5 minutes
-       onExpire={resetSession}
-       />
-        {/* Install Prompt - Shows across all screens */}
+
+        <SessionWarningBanner
+          show={showWarning}
+          warningMs={300000} // 5 minutes before auto-logout
+          onExpire={resetSession}
+        />
+
         <InstallPrompt />
       </div>
     </ThemeProvider>
   );
 }
- 
+
 export default App;

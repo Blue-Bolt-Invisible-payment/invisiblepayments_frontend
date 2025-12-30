@@ -329,47 +329,7 @@ const WelcomeKiosk = ({ onLogin, onRegister }) => {
         
 
         {/* Instructions */}
-        <Typography 
-          variant="body2" 
-          sx={{ 
-            mt: { xs: 0.9, sm: 1.15, md: 1.25 },
-            fontFamily: 'Gallix, sans-serif',
-            color: '#000048',
-            opacity: 0.6,
-            fontSize: { xs: '0.64rem', sm: '0.74rem', md: '0.79rem' }
-          }}
-        >
-          {deviceStatus.available 
-            ? 'Place your finger on the scanner and wait for verification'
-            : 'No biometric sensor detected. Please use test mode or contact support.'
-          }
-        </Typography>
-
-        {/* REGISTRATION BUTTON - Uncomment below to show registration link */}
         
-        <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #e0e0e0' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, textAlign: 'center' }}>
-            Don't have an account?
-          </Typography>
-          <Button
-            variant="outlined"
-            onClick={onRegister}
-            fullWidth
-            sx={{
-              py: 1,
-              fontSize: '0.9rem',
-              fontWeight: 'bold',
-              borderColor: '#000048',
-              color: '#000048',
-              '&:hover': {
-                borderColor: '#000048',
-                bgcolor: 'rgba(0, 0, 72, 0.04)'
-              }
-            }}
-          >
-            Register New User
-          </Button>
-        </Box>
         
       </Box>
     </Box>
