@@ -1,17 +1,17 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import useInactivityTimeout from './hooks/useInactivityTimeout';
-import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import WelcomeKiosk from './components/WelcomeKiosk';
-import WalletDisplay from './components/WalletDisplay';
-import ShoppingHandheld from './components/ShoppingHandheld';
-import CartReview from './components/CartReview';
-import PaymentConfirmation from './components/PaymentConfirmation';
-import InstallPrompt from './components/InstallPrompt';
-import { disableTestMode, getCart, getCartTotal } from './api';
-import SessionWarningBanner from './components/SessionWarningBanner';
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import useInactivityTimeout from "./hooks/useInactivityTimeout";
+import { Box, CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import WelcomeKiosk from "./components/WelcomeKiosk";
+import WalletDisplay from "./components/WalletDisplay";
+import ShoppingHandheld from "./components/ShoppingHandheld";
+import CartReview from "./components/CartReview";
+import PaymentConfirmation from "./components/PaymentConfirmation";
+import InstallPrompt from "./components/InstallPrompt";
+import { disableTestMode, getCart, getCartTotal } from "./api";
+import SessionWarningBanner from "./components/SessionWarningBanner";
 
 function App() {
-  const [currentStep, setCurrentStep] = useState('welcome');
+  const [currentStep, setCurrentStep] = useState("welcome");
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [total, setTotal] = useState(0);
@@ -24,18 +24,21 @@ function App() {
     setUser(null);
     setCart([]);
     setTotal(0);
-    setCurrentStep('welcome');
+    setCurrentStep("welcome");
+    gi;
     disableTestMode();
   }, []);
 
-  // Dynamic inactivity timeout: 30s after payment, 15m otherwise
-  const timeoutMs = currentStep === 'confirmation' ? 30000 : 900000;
-  
-  useInactivityTimeout(() => {
-    resetSession();
-  }, timeoutMs, !!user);
+  const timeoutMs = currentStep === "confirmation" ? 30000 : 900000;
 
-  // Separate effect for the Warning Banner logic
+  useInactivityTimeout(
+    () => {
+      resetSession();
+    },
+    timeoutMs,
+    !!user
+  );
+
   useEffect(() => {
     if (!user) return;
 
@@ -44,47 +47,58 @@ function App() {
       clearTimeout(activityTimer);
       setShowWarning(false);
       activityTimer = setTimeout(() => {
-        setShowWarning(true); // After 10 min inactivity, show banner
+        setShowWarning(true);
       }, 10 * 60 * 1000);
     };
 
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    events.forEach(e => document.addEventListener(e, resetActivity, true));
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+      "click",
+    ];
+    events.forEach((e) => document.addEventListener(e, resetActivity, true));
     resetActivity();
 
     return () => {
       clearTimeout(activityTimer);
-      events.forEach(e => document.removeEventListener(e, resetActivity, true));
+      events.forEach((e) =>
+        document.removeEventListener(e, resetActivity, true)
+      );
     };
   }, [user]);
 
   /**
    * THEME CONFIGURATION
    */
-  const theme = useMemo(() => createTheme({
-    palette: {
-      primary: {
-        main: '#000048',
-      },
-      secondary: {
-        main: '#dc004e',
-      },
-    },
-    typography: {
-      fontFamily: 'Gallix, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    },
-  }), []);
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          primary: { main: "#000048" },
+          secondary: { main: "#dc004e" },
+        },
+        typography: {
+          fontFamily:
+            'Gallix, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        },
+      }),
+    []
+  );
 
   /**
    * NAVIGATION HANDLERS
    */
   const handleLogin = useCallback((loggedUser) => {
     setUser(loggedUser);
-    setCurrentStep('wallet');
+    setCurrentStep("wallet");
   }, []);
 
+  // REVERTED: Now goes directly to shopping regardless of cart state
   const handleContinueShopping = useCallback(() => {
-    setCurrentStep('shopping');
+    setCurrentStep("shopping");
   }, []);
 
   const handleEndShopping = useCallback(async () => {
@@ -95,14 +109,14 @@ function App() {
         setCart(cartResponse.data);
         setTotal(totalResponse.data);
       } catch (error) {
-        console.error('Failed to refresh cart for review:', error);
+        console.error("Failed to refresh cart for review:", error);
       }
     }
-    setCurrentStep('review');
+    setCurrentStep("review");
   }, [user]);
 
   const handlePayment = useCallback(() => {
-    setCurrentStep('confirmation');
+    setCurrentStep("confirmation");
   }, []);
 
   const handleBackToShopping = useCallback(async () => {
@@ -113,10 +127,10 @@ function App() {
         setCart(cartResponse.data);
         setTotal(totalResponse.data);
       } catch (error) {
-        console.error('Failed to refresh cart:', error);
+        console.error("Failed to refresh cart:", error);
       }
     }
-    setCurrentStep('shopping');
+    setCurrentStep("shopping");
   }, [user]);
 
   const updateCart = useCallback((newCart, newTotal) => {
@@ -124,28 +138,28 @@ function App() {
     setTotal(newTotal);
   }, []);
 
-  /**
-   * STYLES
-   */
-  const containerStyles = useMemo(() => ({
-    px: { xs: 1, sm: 2, md: 3 },
-    py: { xs: 2, sm: 3, md: 4 },
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    bgcolor: '#f5f5f5'
-  }), []);
+  const containerStyles = useMemo(
+    () => ({
+      px: { xs: 1, sm: 2, md: 3 },
+      py: { xs: 2, sm: 3, md: 4 },
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      bgcolor: "#f5f5f5",
+    }),
+    []
+  );
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <div>
-        {/* Full screen layouts for Shopping and Confirmation */}
-        {currentStep === 'shopping' || currentStep === 'confirmation' ? (
+        {/* Full screen layouts */}
+        {currentStep === "shopping" || currentStep === "confirmation" ? (
           <>
-            {currentStep === 'shopping' && user && (
+            {currentStep === "shopping" && user && (
               <ShoppingHandheld
                 userId={user.id}
                 user={user}
@@ -156,7 +170,8 @@ function App() {
                 onLogout={resetSession}
               />
             )}
-            {currentStep === 'confirmation' && user && (
+
+            {currentStep === "confirmation" && user && (
               <PaymentConfirmation
                 user={user}
                 cart={cart}
@@ -166,19 +181,18 @@ function App() {
             )}
           </>
         ) : (
-          /* Centered container for Welcome, Wallet, and Review */
           <Box sx={containerStyles}>
-            {currentStep === 'welcome' && (
+            {currentStep === "welcome" && (
               <WelcomeKiosk onLogin={handleLogin} />
             )}
-            {currentStep === 'wallet' && user && (
-              <WalletDisplay 
-                user={user} 
-                onContinue={handleContinueShopping} 
-                onLogout={resetSession} 
+            {currentStep === "wallet" && user && (
+              <WalletDisplay
+                user={user}
+                onContinue={handleContinueShopping}
+                onLogout={resetSession}
               />
             )}
-            {currentStep === 'review' && user && (
+            {currentStep === "review" && user && (
               <CartReview
                 user={user}
                 cart={cart}
@@ -193,10 +207,9 @@ function App() {
 
         <SessionWarningBanner
           show={showWarning}
-          warningMs={300000} // 5 minutes before auto-logout
+          warningMs={300000}
           onExpire={resetSession}
         />
-
         <InstallPrompt />
       </div>
     </ThemeProvider>
