@@ -9,6 +9,8 @@ import PaymentConfirmation from './components/PaymentConfirmation';
 import InstallPrompt from './components/InstallPrompt';
 import { disableTestMode, getCart, getCartTotal } from './api';
 import SessionWarningBanner from './components/SessionWarningBanner';
+import SessionLocked from './components/SessionLocked';
+
 
 function App() {
   const [currentStep, setCurrentStep] = useState('welcome');
@@ -16,6 +18,7 @@ function App() {
   const [cart, setCart] = useState([]);
   const [total, setTotal] = useState(0);
   const [showWarning, setShowWarning] = useState(false);
+  const [sessionLocked, setSessionLocked] = useState(false);
 
   /**
    * SESSION MANAGEMENT
@@ -29,10 +32,17 @@ function App() {
   }, []);
 
   // Dynamic inactivity timeout: 30s after payment, 15m otherwise
-  const timeoutMs = currentStep === 'confirmation' ? 30000 : 900000;
+  const timeoutMs = currentStep === 'confirmation' ? 30000 : 60000;
   
-  useInactivityTimeout(() => {
-    resetSession();
+  // Show lock overlay on inactivity instead of immediately resetting session
+  const resetInactivity = useInactivityTimeout(() => {
+    // when timer expires: if we're on the payment confirmation step (30s),
+    // perform the automatic logout/redirect; otherwise show the session lock modal.
+    if (currentStep === 'confirmation') {
+      resetSession();
+    } else {
+      setSessionLocked(true);
+    }
   }, timeoutMs, !!user);
 
   // Separate effect for the Warning Banner logic
@@ -138,6 +148,18 @@ function App() {
     bgcolor: '#f5f5f5'
   }), []);
 
+  // handler when user resumes via fingerprint in the SessionLocked overlay
+  const handleResumeFromLock = useCallback((authData) => {
+    // close overlay
+    setSessionLocked(false);
+    // optionally merge any returned user info
+    if (authData && typeof authData === 'object') {
+      setUser(prev => ({ ...(prev || {}), ...authData }));
+    }
+    // restart inactivity timer for full timeout period
+    if (typeof resetInactivity === 'function') resetInactivity();
+  }, [resetInactivity]);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -156,13 +178,27 @@ function App() {
                 onLogout={resetSession}
               />
             )}
+
             {currentStep === 'confirmation' && user && (
-              <PaymentConfirmation
-                user={user}
-                cart={cart}
-                total={total}
-                onExit={resetSession}
-              />
+              <>
+                {/* Render CartReview as the background page so PaymentConfirmation overlay appears on top */}
+                <CartReview
+                  user={user}
+                  cart={cart}
+                  total={total}
+                  onPayment={handlePayment}
+                  onBack={handleBackToShopping}
+                  onLogout={resetSession}
+                />
+
+                {/* PaymentConfirmation mounts on top of CartReview and displays processing/success popups within the same page */}
+                <PaymentConfirmation
+                  user={user}
+                  cart={cart}
+                  total={total}
+                  onExit={resetSession}
+                />
+              </>
             )}
           </>
         ) : (
@@ -194,7 +230,14 @@ function App() {
         <SessionWarningBanner
           show={showWarning}
           warningMs={300000} // 5 minutes before auto-logout
-          onExpire={resetSession}
+          onExpire={() => setSessionLocked(true)}
+        />
+
+        {/* Session locked overlay - appears on inactivity and resumes on fingerprint */}
+        <SessionLocked
+          open={sessionLocked}
+          onResume={handleResumeFromLock}
+          onExit={() => { setSessionLocked(false); resetSession(); }}
         />
 
         <InstallPrompt />

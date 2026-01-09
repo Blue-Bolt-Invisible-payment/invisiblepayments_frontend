@@ -7,7 +7,7 @@ import { useEffect, useRef, useCallback } from 'react';
  * @param {boolean} isActive - Whether the timeout should be active
  * @returns {function} resetTimer - allows manual reset if needed
  */
-const useInactivityTimeout = (onTimeout, timeoutMs = 900000, isActive = true) => {
+const useInactivityTimeout = (onTimeout, timeoutMs = 60000, isActive = true) => {
   const timeoutRef = useRef(null);
 
   // Reset the inactivity timer

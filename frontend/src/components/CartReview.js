@@ -44,6 +44,8 @@ const CartReview = ({ user, cart, total, onPayment, onBack,onLogout  }) => {
       setError(`Insufficient Wallet Balance. You need ₹${(totalAmount - user.walletBalance).toFixed(2)} more to complete this purchase.`);
       return;
     }
+    
+
 
     // Show confirmation dialog
     setOpenDialog(true);
@@ -66,9 +68,7 @@ const CartReview = ({ user, cart, total, onPayment, onBack,onLogout  }) => {
     onPayment(authData);
   };
 
-  if (showPaymentScan) {
-    return <PaymentScan onAuthorized={handleAuthorized} />;
-  }
+  // Do not return early — render PaymentScan as a modal overlay so the page remains visible
 
   return (
     <>
@@ -107,6 +107,14 @@ const CartReview = ({ user, cart, total, onPayment, onBack,onLogout  }) => {
             Review Your Cart
           </Typography>
 
+          {/* PaymentScan modal rendered over the page when triggered */}
+          {showPaymentScan && (
+            <PaymentScan
+              onAuthorized={handleAuthorized}
+              onClose={() => setShowPaymentScan(false)}
+            />
+          )}
+
         {/* Error Alert */}
         {error && (
           <Alert 
@@ -123,7 +131,7 @@ const CartReview = ({ user, cart, total, onPayment, onBack,onLogout  }) => {
         )}
 
         {/* Cart Items */}
-        <Paper sx={{ mb: 3, p: 3, borderRadius: 3 }}>
+         <Paper sx={{ mb: 3, p: 3, borderRadius: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <ShoppingCartIcon sx={{ color: '#000048', mr: 1 }} />
             <Typography
@@ -187,13 +195,12 @@ const CartReview = ({ user, cart, total, onPayment, onBack,onLogout  }) => {
                     fontWeight: 'bold'
                   }}
                 >
-                  ₹{(item.item.price * item.quantity).toFixed(2)}
+                   ₹{(item.item.price * item.quantity).toFixed(2)} 
                 </Typography>
               </ListItem>
             ))}
           </List>
-        </Paper>
-
+        </Paper> 
         {/* Summary Card */}
         <Card sx={{ mb: 3, borderRadius: 3, boxShadow: 4 }}>
           <CardContent sx={{ p: 3 }}>
@@ -235,9 +242,10 @@ const CartReview = ({ user, cart, total, onPayment, onBack,onLogout  }) => {
                 <Typography sx={{ fontFamily: 'Gallix, sans-serif', opacity: 0.8, mb: 1 }}>
                   Current Wallet Balance:
                 </Typography>
-                <Typography variant="h5" sx={{ fontFamily: 'Gallix, sans-serif', fontWeight: 'bold' }}>
+                 <Typography variant="h5" sx={{ fontFamily: 'Gallix, sans-serif', fontWeight: 'bold' }}>
                   ₹{user.walletBalance.toFixed(2)}
-                </Typography>
+                </Typography>  
+                 
                 <Typography sx={{ fontFamily: 'Gallix, sans-serif', mt: 1, opacity: 0.8 }}>
                   Balance After Purchase:
                 </Typography>
@@ -250,12 +258,16 @@ const CartReview = ({ user, cart, total, onPayment, onBack,onLogout  }) => {
                       const totalAmount = typeof total === 'object' ? (total.total || 0) : (total || 0);
                       return user.walletBalance - totalAmount >= 0 ? '#4caf50' : '#f44336';
                     })()
+                    
+                  
+
                   }}
                 >
                   ₹{(() => {
                     const totalAmount = typeof total === 'object' ? (total.total || 0) : (total || 0);
                     return (user.walletBalance - totalAmount).toFixed(2);
                   })()}
+                 
                 </Typography>
               </Box>
               <AccountBalanceWalletIcon sx={{ fontSize: 60, opacity: 0.7 }} />
