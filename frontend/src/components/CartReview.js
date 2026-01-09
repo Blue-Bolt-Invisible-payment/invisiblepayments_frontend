@@ -61,9 +61,14 @@ const CartReview = ({ user, cart, total, onPayment, onBack, onLogout }) => {
     onPayment(authData);
   };
 
-  if (showPaymentScan) {
-    return <PaymentScan onAuthorized={handleAuthorized} />;
-  }
+  // if (showPaymentScan) {
+  //   return (
+  //     <PaymentScan
+  //       onAuthorized={handleAuthorized}
+  //       onClose={() => setShowPaymentScan(false)} // This allows the "X" to work
+  //     />
+  //   );
+  // }
 
   const totalAmountDisplay =
     typeof total === "object" ? total.total || 0 : total || 0;
@@ -550,6 +555,22 @@ const CartReview = ({ user, cart, total, onPayment, onBack, onLogout }) => {
                   Confirm & Checkout
                 </Button>
               </Box>
+            </DialogContent>
+          </Dialog>
+          <Dialog
+            open={showPaymentScan}
+            onClose={() => setShowPaymentScan(false)}
+            maxWidth="md"
+            fullWidth
+            PaperProps={{
+              sx: { borderRadius: "16px", overflow: "hidden" },
+            }}
+          >
+            <DialogContent sx={{ p: 0 }}>
+              <PaymentScan
+                onAuthorized={handleAuthorized}
+                onClose={() => setShowPaymentScan(false)}
+              />
             </DialogContent>
           </Dialog>
         </Box>

@@ -19,9 +19,9 @@ const WalletDisplay = memo(({ user, onContinue,onLogout }) => {
     const fetchBalance = async () => {
       try {
         const response = await getWalletBalance(user.id);
-        setBalance(response.data);
-        setError(''); // Clear any previous errors
-        setLoading(false);
+      setBalance(response.data);
+      setError(''); // Clear any previous errors
+      setLoading(false);
       } catch (err) {
         // Only show error if we don't have a fallback balance
         if (!user.walletBalance && user.walletBalance !== 0) {
@@ -174,7 +174,9 @@ const WalletDisplay = memo(({ user, onContinue,onLogout }) => {
                   textShadow: '0 2px 4px rgba(0,0,0,0.1)'
                 }}
               >
-                {loading ? '...' : `₹${balance.toFixed(2)}`}
+              {loading ? '...' : `₹${balance.toFixed(2)}`}
+
+
               </Typography>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

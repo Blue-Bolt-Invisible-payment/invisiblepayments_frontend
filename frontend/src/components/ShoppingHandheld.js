@@ -10,7 +10,7 @@
  * - Header is memoized to never re-render unless dependencies change
  *
  * RFID SCANNER INTEGRATION:
- * - When RFID scanner detects new product, call handleRefreshCart()
+ 
  * - This fetches latest cart without re-rendering entire screen
  * - Only the cart list updates, everything else stays static
  * - For demo: Use "Refresh Cart" button in header to simulate RFID scan
@@ -135,7 +135,7 @@ const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
           />
         </svg>
         <br />
-        {/* <Button
+        <Button
           variant="outlined"
           onClick={onStartShopping}
           sx={{
@@ -148,7 +148,7 @@ const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
           }}
         >
           Add Products Manually (Demo Mode)
-        </Button> */}
+        </Button>
       </Box>
     </Box>
   );
