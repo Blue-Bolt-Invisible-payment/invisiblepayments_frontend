@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from "react";
 
 /**
  * Custom hook to handle user inactivity timeout
@@ -7,7 +7,12 @@ import { useEffect, useRef, useCallback } from 'react';
  * @param {boolean} isActive - Whether the timeout should be active
  * @returns {function} resetTimer - allows manual reset if needed
  */
-const useInactivityTimeout = (onTimeout, timeoutMs = 60000, isActive = true) => {
+// change timeout session here to 15 minute after demo
+const useInactivityTimeout = (
+  onTimeout,
+  timeoutMs = 60000,
+  isActive = true
+) => {
   const timeoutRef = useRef(null);
 
   // Reset the inactivity timer
@@ -29,13 +34,20 @@ const useInactivityTimeout = (onTimeout, timeoutMs = 60000, isActive = true) => 
 
   useEffect(() => {
     if (!isActive) return;
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    events.forEach(event => {
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+      "click",
+    ];
+    events.forEach((event) => {
       document.addEventListener(event, handleActivity, true);
     });
     resetTimer();
     return () => {
-      events.forEach(event => {
+      events.forEach((event) => {
         document.removeEventListener(event, handleActivity, true);
       });
       if (timeoutRef.current) {

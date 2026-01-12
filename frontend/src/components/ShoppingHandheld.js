@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Button,
   Typography,
@@ -11,40 +11,104 @@ import {
   Alert,
   Dialog,
   DialogContent,
-  IconButton
-} from '@mui/material';
-import { getCart, getCartTotal, addItemsToCart } from '../api';
-import AppHeader from './AppHeader';
-import PaymentScan from './PaymentScan';
+  IconButton,
+} from "@mui/material";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import { getCart, getCartTotal, addItemsToCart } from "../api";
+import AppHeader from "./AppHeader";
+import PaymentScan from "./PaymentScan";
 
 // --- EmptyCartView Component ---
 const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
   return (
-    <Box sx={{ width: "100vw", height: "100vh", bgcolor: "#FFFFFF", overflow: "hidden" }}>
+    <Box
+      sx={{
+        width: "100vw",
+        height: "100vh",
+        bgcolor: "#FFFFFF",
+        overflow: "hidden",
+      }}
+    >
       <AppHeader user={user} onLogout={onLogout} showWallet={true} />
-      <Box sx={{ 
-        width: "100%", 
-        height: "100%", 
-        display: "flex", 
-        flexDirection: "column", 
-        alignItems: "center", 
-        justifyContent: "center", 
-        position: "relative", 
-        pt: "60px" 
-      }}>
-        <Box sx={{ position: "absolute", top: "77px", left: "33px", display: "flex", alignItems: "center", gap: "16px" }}>
-          <Box component="img" src="/logo/BoyLogo.png" sx={{ width: '38px', height: '38px' }} />
-          <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color: "#000048" }}>
+      <Box
+        sx={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          pt: "60px",
+        }}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "77px",
+            left: "33px",
+            display: "flex",
+            alignItems: "center",
+            gap: "16px",
+          }}
+        >
+          <Box
+            component="img"
+            src="/logo/BoyLogo.png"
+            sx={{ width: "38px", height: "38px" }}
+          />
+          <Typography
+            sx={{
+              fontFamily: "Gallix, sans-serif",
+              fontWeight: 600,
+              fontSize: "20px",
+              color: "#000048",
+            }}
+          >
             Welcome {user?.name || "User"} !
           </Typography>
         </Box>
-        <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 500, fontSize: "32px", mb: 1.5, color: "#000048" }}>Your cart is empty</Typography>
-        <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 500, fontSize: "20px", opacity: 0.8, color: "#000048", mb: 5 }}>
+        <Typography
+          sx={{
+            fontFamily: "Gallix, sans-serif",
+            fontWeight: 500,
+            fontSize: "32px",
+            mb: 1.5,
+            color: "#000048",
+          }}
+        >
+          Your cart is empty
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: "Gallix, sans-serif",
+            fontWeight: 500,
+            fontSize: "20px",
+            opacity: 0.8,
+            color: "#000048",
+            mb: 5,
+          }}
+        >
           Drop items into the cart to begin your shopping
         </Typography>
-        <Box component="img" src="/logo/image.png" sx={{ width: '220px', mb: 4 }} />
+        <Box
+          component="img"
+          src="/logo/image.png"
+          sx={{ width: "220px", mb: 4 }}
+        />
         <br />
-        <Button variant="outlined" onClick={onStartShopping} sx={{ fontFamily: "Gallix, sans-serif", borderColor: "#000048", color: "#000048", fontWeight: "bold", padding: "10px 24px", textTransform: "none" }}>
+        <Button
+          variant="outlined"
+          onClick={onStartShopping}
+          sx={{
+            fontFamily: "Gallix, sans-serif",
+            borderColor: "#000048",
+            color: "#000048",
+            fontWeight: "bold",
+            padding: "10px 24px",
+            textTransform: "none",
+          }}
+        >
           Add Products Manually (Demo Mode)
         </Button>
       </Box>
@@ -57,41 +121,129 @@ const CartItemComponent = React.memo(({ cartItem }) => {
   if (!cartItem || !cartItem.item) return null;
   const unitPrice = Number(cartItem.item.price || 0);
   const rowSubtotal = unitPrice * cartItem.quantity;
-  const getImageUrl = (path) => path ? `/logo/${path.split(/[\\/]/).pop()}` : "/logo/16.png";
+  const getImageUrl = (path) =>
+    path ? `/logo/${path.split(/[\\/]/).pop()}` : "/logo/16.png";
 
   return (
-    <Box sx={{
-      width: { xs: '100%', md: '772px' }, height: { xs: 'auto', md: '106px' },
-      padding: '12px', gap: '20px', border: '1px solid #E3E3E3', borderRadius: '0px',
-      display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', bgcolor: '#ffffff'
-    }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', width: { xs: '100%', sm: '282px' } }}>
-        <Box component="img" src={getImageUrl(cartItem.item.imageUrl)} sx={{ width: '80px', height: '80px', objectFit: 'contain' }} />
-        <Box sx={{ ml: '16px' }}>
-          <Typography sx={{ fontFamily: "Gallix, sans-serif", color: '#000048', fontSize: '16px', fontWeight: 600 }}>{cartItem.item.name}</Typography>
-          <Typography sx={{ fontFamily: "Gallix, sans-serif", fontSize: '14px', color: '#848484' }}>{cartItem.item.unit}</Typography>
-          <Typography sx={{ fontFamily: "Gallix, sans-serif", fontSize: '12px', color: '#B0B0B0' }}>{cartItem.item.rfidTag ? `#${cartItem.item.rfidTag}` : "#Scanning..."}</Typography>
+    <Box
+      sx={{
+        width: { xs: "100%", md: "772px" },
+        height: { xs: "auto", md: "106px" },
+        padding: "12px",
+        gap: "20px",
+        border: "1px solid #E3E3E3",
+        borderRadius: "0px",
+        display: "flex",
+        flexDirection: { xs: "column", sm: "row" },
+        alignItems: "center",
+        bgcolor: "#ffffff",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          width: { xs: "100%", sm: "282px" },
+        }}
+      >
+        <Box
+          component="img"
+          src={getImageUrl(cartItem.item.imageUrl)}
+          sx={{ width: "80px", height: "80px", objectFit: "contain" }}
+        />
+        <Box sx={{ ml: "16px" }}>
+          <Typography
+            sx={{
+              fontFamily: "Gallix, sans-serif",
+              color: "#000048",
+              fontSize: "16px",
+              fontWeight: 600,
+            }}
+          >
+            {cartItem.item.name}
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "Gallix, sans-serif",
+              fontSize: "14px",
+              color: "#848484",
+            }}
+          >
+            {cartItem.item.unit}
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "Gallix, sans-serif",
+              fontSize: "12px",
+              color: "#B0B0B0",
+            }}
+          >
+            {cartItem.item.rfidTag
+              ? `#${cartItem.item.rfidTag}`
+              : "#Scanning..."}
+          </Typography>
         </Box>
       </Box>
-      <Box sx={{ width: { xs: '100%', sm: '285px' }, display: 'flex', ml: 'auto', justifyContent: 'space-between' }}>
-        <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center' }}>{cartItem.quantity}</Typography>
-        <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center' }}>${unitPrice.toFixed(2)}</Typography>
-        <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center', fontWeight: 600, color: '#000048' }}>${rowSubtotal.toFixed(2)}</Typography>
+      <Box
+        sx={{
+          width: { xs: "100%", sm: "285px" },
+          display: "flex",
+          ml: "auto",
+          justifyContent: "space-between",
+        }}
+      >
+        <Typography
+          sx={{
+            fontFamily: "Gallix, sans-serif",
+            width: "81px",
+            textAlign: "center",
+          }}
+        >
+          {cartItem.quantity}
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: "Gallix, sans-serif",
+            width: "81px",
+            textAlign: "center",
+          }}
+        >
+          ${unitPrice.toFixed(2)}
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: "Gallix, sans-serif",
+            width: "81px",
+            textAlign: "center",
+            fontWeight: 600,
+            color: "#000048",
+          }}
+        >
+          ${rowSubtotal.toFixed(2)}
+        </Typography>
       </Box>
     </Box>
   );
 });
 
 // --- Main ShoppingHandheld Component ---
-const ShoppingHandheld = ({ userId, user, cart = [], onUpdateCart, onEndShopping, onLogout }) => {
+const ShoppingHandheld = ({
+  userId,
+  user,
+  cart = [],
+  onUpdateCart,
+  onEndShopping,
+  onLogout,
+}) => {
   const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
   const [showManualAdd, setShowManualAdd] = useState(false);
   const [error, setError] = useState("");
-  
+
   // Checkout Dialog States
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [showPaymentScan, setShowPaymentScan] = useState(false);
+  const [balanceDialogOpen, setBalanceDialogOpen] = useState(false);
 
   const availableProducts = [
     { id: 1, name: "Fresh Apples", price: 3.99, rfidTag: "RFID0001" },
@@ -102,8 +254,18 @@ const ShoppingHandheld = ({ userId, user, cart = [], onUpdateCart, onEndShopping
     { id: 16, name: "White Bread", price: 2.99, rfidTag: "RFID0016" },
   ];
 
-  const currentTotal = (cart || []).reduce((acc, item) => acc + (Number(item.item?.price || 0) * item.quantity), 0);
-  const orderTotal = currentTotal + 2.50;
+  const currentTotal = (cart || []).reduce(
+    (acc, item) => acc + Number(item.item?.price || 0) * item.quantity,
+    0
+  );
+  const orderTotal = currentTotal + 2.5;
+
+  // Wallet Logic
+  const walletBalance = Number(user?.walletBalance || 0);
+  const additionalRequired =
+    orderTotal > walletBalance
+      ? (orderTotal - walletBalance).toFixed(2)
+      : "0.00";
 
   const handleAddManualProduct = async (product) => {
     try {
@@ -120,100 +282,333 @@ const ShoppingHandheld = ({ userId, user, cart = [], onUpdateCart, onEndShopping
   // Flow Handlers
   const handleProceedToCheckout = () => setOpenConfirmDialog(true);
   const handleCancelConfirmation = () => setOpenConfirmDialog(false);
-  
+
   const handleConfirmAndOpenPayment = () => {
     setOpenConfirmDialog(false);
-    setShowPaymentScan(true); 
+    // Check balance logic
+    if (orderTotal > walletBalance) {
+      setBalanceDialogOpen(true);
+    } else {
+      setShowPaymentScan(true);
+    }
   };
 
   const handlePaymentAuthorized = (authData) => {
     setShowPaymentScan(false);
-    onEndShopping(authData); // Informs App.js to move to confirmation step
+    onEndShopping(authData);
   };
 
   if (cart.length === 0 && !showManualAdd) {
-    return <EmptyCartView user={user} onLogout={onLogout} onStartShopping={() => setShowManualAdd(true)} />;
+    return (
+      <EmptyCartView
+        user={user}
+        onLogout={onLogout}
+        onStartShopping={() => setShowManualAdd(true)}
+      />
+    );
   }
 
   return (
-    <Box sx={{ bgcolor: '#FFFFFF', minHeight: '100vh', width: '100%' }}>
+    <Box sx={{ bgcolor: "#FFFFFF", minHeight: "100vh", width: "100%" }}>
       <AppHeader user={user} onLogout={onLogout} />
-      
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, mt: { xs: '60px', md: '60px' } }}>
-        <Box sx={{ flex: 1, p: { xs: '20px', md: '40px' }, mr: { md: '427px' } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, gap: '16px' }}>
-            <Box component="img" src="/logo/BoyLogo.png" sx={{ width: '38px', height: '38px' }} />
-            <Typography sx={{ fontFamily: "Gallix, sans-serif", color: '#000048', fontWeight: 600, fontSize: '20px' }}>Welcome {user?.name || 'User'} !</Typography>
+
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          mt: "60px",
+        }}
+      >
+        <Box
+          sx={{ flex: 1, p: { xs: "20px", md: "40px" }, mr: { md: "427px" } }}
+        >
+          <Box
+            sx={{ display: "flex", alignItems: "center", mb: 4, gap: "16px" }}
+          >
+            <Box
+              component="img"
+              src="/logo/BoyLogo.png"
+              sx={{ width: "38px", height: "38px" }}
+            />
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+                color: "#000048",
+                fontWeight: 600,
+                fontSize: "20px",
+              }}
+            >
+              Welcome {user?.name || "User"} !
+            </Typography>
           </Box>
 
-          {error && <Alert severity="error" sx={{ mb: 2, fontFamily: "Gallix, sans-serif" }}>{error}</Alert>}
+          {error && (
+            <Alert
+              severity="error"
+              sx={{ mb: 2, fontFamily: "Gallix, sans-serif" }}
+            >
+              {error}
+            </Alert>
+          )}
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-            <Button variant="outlined" onClick={() => setShowManualAdd(!showManualAdd)} sx={{ fontFamily: "Gallix, sans-serif", borderColor: "#000048", color: "#000048", fontWeight: "bold", textTransform: 'none' }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setShowManualAdd(!showManualAdd)}
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+                borderColor: "#000048",
+                color: "#000048",
+                fontWeight: "bold",
+                textTransform: "none",
+              }}
+            >
               {showManualAdd ? "Hide Manual Add" : "Add Products Manually"}
             </Button>
-            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 500, color: '#000048', fontSize: '20px', display: 'flex', alignItems: 'center' }}>
-                Total Item : {cart.length}
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+                fontWeight: 500,
+                color: "#000048",
+                fontSize: "20px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              Total Item : {cart.length}
             </Typography>
           </Box>
 
           {showManualAdd && (
             <Paper sx={{ p: 2, mb: 2, bgcolor: "#f9f9f9", borderRadius: 2 }}>
-              <Typography sx={{ fontFamily: "Gallix, sans-serif", mb: 2, color: "#000048", fontWeight: "bold" }}>Available Products (Click to Add)</Typography>
-              <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 1.5 }}>
+              <Typography
+                sx={{
+                  fontFamily: "Gallix, sans-serif",
+                  mb: 2,
+                  color: "#000048",
+                  fontWeight: "bold",
+                }}
+              >
+                Available Products (Click to Add)
+              </Typography>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+                  gap: 1.5,
+                }}
+              >
                 {availableProducts.map((p) => (
-                  <Paper key={p.id} onClick={() => handleAddManualProduct(p)} sx={{ p: 1.5, cursor: "pointer", "&:hover": { boxShadow: 3 } }}>
-                    <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: "bold", fontSize: "0.9rem" }}>{p.name}</Typography>
-                    <Typography sx={{ fontFamily: "Gallix, sans-serif", color: "#2DB81F", fontWeight: "bold" }}>${p.price.toFixed(2)}</Typography>
+                  <Paper
+                    key={p.id}
+                    onClick={() => handleAddManualProduct(p)}
+                    sx={{
+                      p: 1.5,
+                      cursor: "pointer",
+                      "&:hover": { boxShadow: 3 },
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: "Gallix, sans-serif",
+                        fontWeight: "bold",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      {p.name}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "Gallix, sans-serif",
+                        color: "#2DB81F",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      ${p.price.toFixed(2)}
+                    </Typography>
                   </Paper>
                 ))}
               </Box>
             </Paper>
           )}
 
-          <Box sx={{ display: 'flex', mb: 1, px: '20px' }}>
-             <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '282px', fontWeight: 600, color: '#000048', fontSize: '18px' }}>Product Detail</Typography>
-             {isDesktop && (
-               <Box sx={{ display: 'flex', width: '285px', ml: 'auto', justifyContent: 'space-between' }}>
-                  <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center', fontWeight: 600 }}>Quantity</Typography>
-                  <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center', fontWeight: 600 }}>Price</Typography>
-                  <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center', fontWeight: 600 }}>Subtotal</Typography>
-               </Box>
-             )}
+          <Box sx={{ display: "flex", mb: 1, px: "20px" }}>
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+                width: "282px",
+                fontWeight: 600,
+                color: "#000048",
+                fontSize: "18px",
+              }}
+            >
+              Product Detail
+            </Typography>
+            {isDesktop && (
+              <Box
+                sx={{
+                  display: "flex",
+                  width: "285px",
+                  ml: "auto",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: "Gallix, sans-serif",
+                    width: "81px",
+                    textAlign: "center",
+                    fontWeight: 600,
+                  }}
+                >
+                  Quantity
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: "Gallix, sans-serif",
+                    width: "81px",
+                    textAlign: "center",
+                    fontWeight: 600,
+                  }}
+                >
+                  Price
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: "Gallix, sans-serif",
+                    width: "81px",
+                    textAlign: "center",
+                    fontWeight: 600,
+                  }}
+                >
+                  Subtotal
+                </Typography>
+              </Box>
+            )}
           </Box>
           <Divider />
-          <List sx={{ p: 0 }}>{cart.map((item) => <CartItemComponent key={item.id} cartItem={item} />)}</List>
+          <List sx={{ p: 0 }}>
+            {cart.map((item) => (
+              <CartItemComponent key={item.id} cartItem={item} />
+            ))}
+          </List>
         </Box>
 
         {/* SIDEBAR */}
-        <Box sx={{ 
-          width: { xs: '100%', md: '427px' }, bgcolor: '#F2F2F2', display: 'flex', flexDirection: 'column', p: '24px',
-          position: { xs: 'relative', md: 'fixed' }, right: 0, top: '60px', height: 'calc(100vh - 60px)'
-        }}>
-          <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 500, fontSize: '32px', color: '#000048', mb: 2 }}>Order Summary</Typography>
-          <Divider sx={{ borderColor: '#000048', mb: 2 }} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontSize: '18px' }}>Subtotal</Typography>
-            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600 }}>${currentTotal.toFixed(2)}</Typography>
+        <Box
+          sx={{
+            width: { xs: "100%", md: "427px" },
+            bgcolor: "#F2F2F2",
+            display: "flex",
+            flexDirection: "column",
+            p: "24px",
+            position: { xs: "relative", md: "fixed" },
+            right: 0,
+            top: "60px",
+            height: "calc(100vh - 60px)",
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: "Gallix, sans-serif",
+              fontWeight: 500,
+              fontSize: "32px",
+              color: "#000048",
+              mb: 2,
+            }}
+          >
+            Order Summary
+          </Typography>
+          <Divider sx={{ borderColor: "#000048", mb: 2 }} />
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography
+              sx={{ fontFamily: "Gallix, sans-serif", fontSize: "18px" }}
+            >
+              Subtotal
+            </Typography>
+            <Typography
+              sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600 }}
+            >
+              ${currentTotal.toFixed(2)}
+            </Typography>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontSize: '18px' }}>Tax</Typography>
-            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600 }}>$2.50</Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography
+              sx={{ fontFamily: "Gallix, sans-serif", fontSize: "18px" }}
+            >
+              Tax
+            </Typography>
+            <Typography
+              sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600 }}
+            >
+              $2.50
+            </Typography>
           </Box>
           <Divider sx={{ my: 2 }} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: '20px', color: '#000048' }}>Order Total</Typography>
-            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: '20px', color: '#000048' }}>${orderTotal.toFixed(2)}</Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3,
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+                fontWeight: 600,
+                fontSize: "20px",
+                color: "#000048",
+              }}
+            >
+              Order Total
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+                fontWeight: 600,
+                fontSize: "20px",
+                color: "#000048",
+              }}
+            >
+              ${orderTotal.toFixed(2)}
+            </Typography>
           </Box>
-          
-          <Button onClick={handleProceedToCheckout} sx={{ fontFamily: "Gallix, sans-serif", width: '100%', height: '56px', bgcolor: '#26EFE9', color: '#000048', borderRadius: '8px', fontWeight: 600, fontSize: '20px', textTransform: 'none' }}>
+
+          <Button
+            onClick={handleProceedToCheckout}
+            sx={{
+              fontFamily: "Gallix, sans-serif",
+              width: "100%",
+              height: "56px",
+              bgcolor: "#26EFE9",
+              color: "#000048",
+              borderRadius: "8px",
+              fontWeight: 600,
+              fontSize: "20px",
+              textTransform: "none",
+            }}
+          >
             Proceed to Checkout
           </Button>
-          
-          <Box sx={{ bgcolor: '#000048', p: '24px', mx: -3, mb: -3, mt: 'auto' }}>
-            <Typography sx={{ fontFamily: "Gallix, sans-serif", color: '#FFFFFF', mb: 1 }}>Cart Total : ${orderTotal.toFixed(2)}</Typography>
-            <Typography sx={{ fontFamily: "Gallix, sans-serif", color: orderTotal > (user?.walletBalance || 0) ? '#FF0000' : '#2DB81F', fontWeight: 600, fontSize: '20px' }}>
-              Wallet Balance : $ {user?.walletBalance || '100'}
+
+          <Box
+            sx={{ bgcolor: "#000048", p: "24px", mx: -3, mb: -3, mt: "auto" }}
+          >
+            <Typography
+              sx={{ fontFamily: "Gallix, sans-serif", color: "#FFFFFF", mb: 1 }}
+            >
+              Cart Total : ${orderTotal.toFixed(2)}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+                color: orderTotal > walletBalance ? "#FF3B30" : "#2DB81F",
+                fontWeight: 600,
+                fontSize: "20px",
+              }}
+            >
+              Wallet Balance : ${walletBalance.toFixed(2)}
             </Typography>
           </Box>
         </Box>
@@ -224,42 +619,116 @@ const ShoppingHandheld = ({ userId, user, cart = [], onUpdateCart, onEndShopping
         open={openConfirmDialog}
         onClose={handleCancelConfirmation}
         PaperProps={{
-          sx: { width: "766px", maxWidth: "95%", borderRadius: "8px", p: "24px", background: "#FFFFFF" },
+          sx: {
+            width: "766px",
+            maxWidth: "95%",
+            borderRadius: "8px",
+            p: "24px",
+            background: "#FFFFFF",
+          },
         }}
       >
         <DialogContent sx={{ p: 0 }}>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: "12px" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: "12px",
+            }}
+          >
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Box sx={{ width: "32px", height: "32px", mr: "12px", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "#000048", borderRadius: "50%" }}>
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M25.3335 16L17.3335 24L15.4668 22.1333L21.5668 16L15.4668 9.86667L17.3335 8L25.3335 16ZM17.3335 16L9.33346 24L7.4668 22.1333L13.5668 16L7.4668 9.86667L9.33346 8L17.3335 16Z" fill="white" /></svg>
+              <Box
+                sx={{
+                  width: "32px",
+                  height: "32px",
+                  mr: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  bgcolor: "#000048",
+                  borderRadius: "50%",
+                }}
+              >
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                  <path
+                    d="M25.3335 16L17.3335 24L15.4668 22.1333L21.5668 16L15.4668 9.86667L17.3335 8L25.3335 16ZM17.3335 16L9.33346 24L7.4668 22.1333L13.5668 16L7.4668 9.86667L9.33346 8L17.3335 16Z"
+                    fill="white"
+                  />
+                </svg>
               </Box>
-              <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 500, fontSize: "24px", color: "#000048" }}>Confirm Items</Typography>
+              <Typography
+                sx={{
+                  fontFamily: "Gallix, sans-serif",
+                  fontWeight: 500,
+                  fontSize: "24px",
+                  color: "#000048",
+                }}
+              >
+                Confirm Items
+              </Typography>
             </Box>
             <IconButton onClick={handleCancelConfirmation} sx={{ p: 0 }}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11.113 8.99872L17.5567 2.56902C17.8389 2.2868 17.9974 1.90402 17.9974 1.5049C17.9974 1.10577 17.8389 0.722997 17.5567 0.440774L9 6.88546L2.57121 0.440774C2.28903 0.158551 1.90631 0 1.50724 0C1.10817 0 0.725452 0.158551 0.443269 0.440774C0.161086 0.722997 0.00255743 1.10577 0.00255743 1.5049L6.88704 8.99872L0.443269 15.4284L1.50724 18L9 11.112L16.4928 18L17.5567 15.4284L11.113 8.99872Z" fill="#000048" /></svg>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path
+                  d="M11.113 8.99872L17.5567 2.56902C17.8389 2.2868 17.9974 1.90402 17.9974 1.5049C17.9974 1.10577 17.8389 0.722997 17.5567 0.440774L9 6.88546L2.57121 0.440774C2.28903 0.158551 1.90631 0 1.50724 0C1.10817 0 0.725452 0.158551 0.443269 0.440774C0.161086 0.722997 0.00255743 1.10577 0.00255743 1.5049L6.88704 8.99872L0.443269 15.4284L1.50724 18L9 11.112L16.4928 18L17.5567 15.4284L11.113 8.99872Z"
+                  fill="#000048"
+                />
+              </svg>
             </IconButton>
           </Box>
 
-          <Box sx={{ width: "100%", height: "1px", mb: "20px", bgcolor: "#000048" }} />
+          <Box
+            sx={{
+              width: "100%",
+              height: "1px",
+              mb: "20px",
+              bgcolor: "#000048",
+            }}
+          />
 
-          <Typography sx={{ fontFamily: "Gallix, sans-serif", fontSize: "17px", color: "#000048", mb: "32px" }}>
+          <Typography
+            sx={{
+              fontFamily: "Gallix, sans-serif",
+              fontSize: "17px",
+              color: "#000048",
+              mb: "32px",
+            }}
+          >
             Please verify the total items and order amount before proceeding.
           </Typography>
 
-          <Box sx={{ display: "flex", gap: "21px", mb: "48px", justifyContent: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: "21px",
+              mb: "48px",
+              justifyContent: "center",
+            }}
+          >
             <Box sx={summaryBoxStyle}>
               <Typography sx={summaryLabelStyle}>Total items</Typography>
               <Typography sx={summaryValueStyle}>{cart.length}</Typography>
             </Box>
             <Box sx={summaryBoxStyle}>
               <Typography sx={summaryLabelStyle}>Order Total</Typography>
-              <Typography sx={summaryValueStyle}>$ {orderTotal.toFixed(2)}</Typography>
+              <Typography sx={summaryValueStyle}>
+                $ {orderTotal.toFixed(2)}
+              </Typography>
             </Box>
           </Box>
 
           <Box sx={{ display: "flex", gap: "32px", justifyContent: "center" }}>
-            <Button onClick={handleCancelConfirmation} sx={outlineButtonStyle}>Review Cart</Button>
-            <Button onClick={handleConfirmAndOpenPayment} variant="contained" sx={containedButtonStyle}>Confirm & Checkout</Button>
+            <Button onClick={handleCancelConfirmation} sx={outlineButtonStyle}>
+              Review Cart
+            </Button>
+            <Button
+              onClick={handleConfirmAndOpenPayment}
+              variant="contained"
+              sx={containedButtonStyle}
+            >
+              Confirm & Checkout
+            </Button>
           </Box>
         </DialogContent>
       </Dialog>
@@ -279,25 +748,174 @@ const ShoppingHandheld = ({ userId, user, cart = [], onUpdateCart, onEndShopping
           />
         </DialogContent>
       </Dialog>
+
+      {/* --- Insufficient Balance Popup --- */}
+      <Dialog
+        open={balanceDialogOpen}
+        onClose={() => setBalanceDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 766,
+            height: 226.01,
+            borderRadius: "8px",
+            bgcolor: "#ffffff",
+            boxShadow: 6,
+            p: 0,
+            overflow: "hidden",
+          },
+        }}
+      >
+        <DialogContent
+          sx={{
+            p: "12px 24px 24px 24px",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <Button
+            onClick={() => setBalanceDialogOpen(false)}
+            sx={{ position: "absolute", top: 18, right: 24, minWidth: 0, p: 0 }}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path
+                d="M11.113 8.99872L17.5567 2.56902C17.8389 2.2868 17.9974 1.90402 17.9974 1.5049C17.9974 1.10577 17.8389 0.722997 17.5567 0.440774C17.2745 0.158551 16.8918 0 16.4928 0C16.0937 0 15.711 0.158551 15.4288 0.440774L9 6.88546L2.57121 0.440774C2.28903 0.158551 1.90631 0 1.50724 0C1.10817 0 0.725452 0.158551 0.443269 0.440774C0.161086 0.722997 0.00255743 1.10577 0.00255743 1.5049C0.00255743 1.90402 0.161086 2.2868 0.443269 2.56902L6.88704 8.99872L0.443269 15.4284C0.302812 15.5678 0.191329 15.7335 0.115249 15.9162C0.0391699 16.0988 0 16.2947 0 16.4925C0 16.6904 0.0391699 16.8863 0.115249 17.0689C0.191329 17.2516 0.302812 17.4173 0.443269 17.5567C0.582579 17.6971 0.74832 17.8086 0.930933 17.8847C1.11355 17.9608 1.30941 18 1.50724 18C1.70507 18 1.90094 17.9608 2.08355 17.8847C2.26616 17.8086 2.4319 17.6971 2.57121 17.5567L9 11.112L15.4288 17.5567C15.5681 17.6971 15.7338 17.8086 15.9165 17.8847C16.0991 17.9608 16.2949 18 16.4928 18C16.6906 18 16.8865 17.9608 17.0691 17.8847C17.2517 17.8086 17.4174 17.6971 17.5567 17.5567C17.6972 17.4173 17.8087 17.2516 17.8848 17.0689C17.9608 16.8863 18 16.6904 18 16.4925C18 16.2947 17.9608 16.0988 17.8848 15.9162C17.8087 15.7335 17.6972 15.5678 17.5567 15.4284L11.113 8.99872Z"
+                fill="#000048"
+              />
+            </svg>
+          </Button>
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              mb: "12px",
+              mt: "6px",
+            }}
+          >
+            <Box
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                bgcolor: "#000048",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <AccountBalanceWalletIcon sx={{ color: "#fff", fontSize: 18 }} />
+            </Box>
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+                fontWeight: 500,
+                fontSize: "24px",
+                color: "#000048",
+              }}
+            >
+              Topup - Insufficient Wallet Balance
+            </Typography>
+          </Box>
+
+          <Divider
+            sx={{ mb: "18px", borderBottomWidth: 2, borderColor: "#000048" }}
+          />
+
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+                color: "#000048",
+                fontSize: "17px",
+              }}
+            >
+              Low wallet balance detected. Top up your wallet to keep shopping.
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <Typography
+                sx={{
+                  fontFamily: "Gallix, sans-serif",
+                  fontSize: "14px",
+                  color: "#5C5C5C",
+                }}
+              >
+                Wallet Balance: ${walletBalance.toFixed(2)}
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "Gallix, sans-serif",
+                  fontSize: "14px",
+                  color: "#000048",
+                }}
+              >
+                Order Total: ${orderTotal.toFixed(2)}
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "Gallix, sans-serif",
+                  fontWeight: 600,
+                  fontSize: "20px",
+                  color: "#000048",
+                }}
+              >
+                Additional Required: ${additionalRequired}
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
 
+// ... keep styles the same ...
 const summaryBoxStyle = {
-  width: "194px", height: "100px", display: "flex", flexDirection: "column",
-  alignItems: "center", justifyContent: "center", borderRadius: "4px",
-  border: "1px solid #EAEAEA", background: "#FFFFFF", boxShadow: "0px 4px 4px 0px #F4F4F4",
+  width: "194px",
+  height: "100px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: "4px",
+  border: "1px solid #EAEAEA",
+  background: "#FFFFFF",
+  boxShadow: "0px 4px 4px 0px #F4F4F4",
 };
-const summaryLabelStyle = { fontFamily: "Gallix, sans-serif", fontSize: "20px", color: "#000048", mb: 0.5 };
-const summaryValueStyle = { fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color: "#000048" };
+const summaryLabelStyle = {
+  fontFamily: "Gallix, sans-serif",
+  fontSize: "20px",
+  color: "#000048",
+  mb: 0.5,
+};
+const summaryValueStyle = {
+  fontFamily: "Gallix, sans-serif",
+  fontWeight: 600,
+  fontSize: "20px",
+  color: "#000048",
+};
 const outlineButtonStyle = {
-  width: "276px", height: "56px", borderRadius: "8px", border: "1px solid #000048",
-  fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color: "#000048", textTransform: "none",
+  width: "276px",
+  height: "56px",
+  borderRadius: "8px",
+  border: "1px solid #000048",
+  fontFamily: "Gallix, sans-serif",
+  fontWeight: 600,
+  fontSize: "20px",
+  color: "#000048",
+  textTransform: "none",
 };
 const containedButtonStyle = {
-  width: "276px", height: "56px", borderRadius: "8px", bgcolor: "#000048",
-  fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color: "#FFFFFF",
-  textTransform: "none", "&:hover": { bgcolor: "#000066" },
+  width: "276px",
+  height: "56px",
+  borderRadius: "8px",
+  bgcolor: "#000048",
+  fontFamily: "Gallix, sans-serif",
+  fontWeight: 600,
+  fontSize: "20px",
+  color: "#FFFFFF",
+  textTransform: "none",
+  "&:hover": { bgcolor: "#000066" },
 };
 
 export default ShoppingHandheld;
