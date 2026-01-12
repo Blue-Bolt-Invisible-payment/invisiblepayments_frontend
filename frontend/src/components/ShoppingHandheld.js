@@ -1,152 +1,50 @@
-/*
- * ShoppingHandheld Component - RFID Shopping Cart Interface
- *
- * ZERO FLICKERING ARCHITECTURE:
- * - Component is wrapped in React.memo to prevent unnecessary re-renders
- * - Cart loads ONCE on mount, NO polling to prevent constant re-renders
- * - All user interactions (quantity change, remove) use OPTIMISTIC UPDATES
- * - UI updates instantly, then syncs with backend in background
- * - Parent App.js uses comparison to prevent state updates when data hasn't changed
- * - Header is memoized to never re-render unless dependencies change
- *
- * RFID SCANNER INTEGRATION:
- 
- * - This fetches latest cart without re-rendering entire screen
- * - Only the cart list updates, everything else stays static
- * - For demo: Use "Refresh Cart" button in header to simulate RFID scan
- *
- * NO MORE FLICKERING - COMPLETELY STATIC UI WITH DYNAMIC CART UPDATES
- */
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Typography,
   Box,
   List,
-  Alert,
-  ListItemAvatar,
-  Avatar,
-  IconButton,
+  Divider,
+  useMediaQuery,
+  useTheme,
   Paper,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import {
-  getCart,
-  getCartTotal,
-  updateCartItem,
-  removeCartItem,
-  addItemsToCart,
-} from "../api";
-import AppHeader from "./AppHeader";
+  Alert
+} from '@mui/material';
+import { getCart, getCartTotal, addItemsToCart } from '../api';
+import AppHeader from './AppHeader';
 
-// --- EmptyCartView Component ---
+
+
+
+// --- EmptyCartView Component (Header WITH Wallet Balance) ---
 const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
-  const galaxyBaseStyle = {
-    fontFamily: '"Galaxy", "Samsung Sharp Sans", sans-serif',
-    lineHeight: "1.2",
-    letterSpacing: "-3%",
-    color: "#000048",
-    textAlign: "center",
-  };
-
   return (
-    <Box
-      sx={{
-        width: "100vw",
-        height: "100vh",
-        bgcolor: "#FFFFFF",
-        overflow: "hidden",
-      }}
-    >
-      {/* Global Header for the Empty State */}
+    <Box sx={{ width: "100vw", height: "100vh", bgcolor: "#FFFFFF", overflow: "hidden" }}>
+      {/* showWallet={true} ensures balance appears here */}
       <AppHeader user={user} onLogout={onLogout} showWallet={true} />
-
-      <Box
-        sx={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-          pt: "60px",
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "77px",
-            left: "33px",
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
-          }}
-        >
-          <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
-            <circle cx="19" cy="19" r="19" fill="#D9D9D9" />
-          </svg>
-          <Typography
-            sx={{
-              ...galaxyBaseStyle,
-              fontWeight: 600,
-              fontSize: "20px",
-              textAlign: "left",
-              lineHeight: "100%",
-              color: "#000048",
-            }}
-          >
-            Welcome {user?.name?.split(" ")[0] || "John"} !
+      <Box sx={{ 
+        width: "100%", 
+        height: "100%", 
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        position: "relative", 
+        pt: "60px" 
+      }}>
+        <Box sx={{ position: "absolute", top: "77px", left: "33px", display: "flex", alignItems: "center", gap: "16px" }}>
+          <Box component="img" src="/logo/BoyLogo.png" sx={{ width: '38px', height: '38px' }} />
+          <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color: "#000048" }}>
+            Welcome {user?.name || "User"} !
           </Typography>
         </Box>
-
-        <Typography
-          sx={{
-            ...galaxyBaseStyle,
-            fontWeight: 500,
-            fontSize: "32px",
-            mb: 1.5,
-          }}
-        >
-          Your cart is empty
-        </Typography>
-
-        <Typography
-          sx={{
-            fontFamily: "Gallix, sans-serif",
-            fontWeight: 500,
-            fontSize: "20px",
-            opacity: 0.8,
-            color: "#000048",
-            mb: 5,
-          }}
-        >
+        <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 500, fontSize: "32px", mb: 1.5, color: "#000048" }}>Your cart is empty</Typography>
+        <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 500, fontSize: "20px", opacity: 0.8, color: "#000048", mb: 5 }}>
           Drop items into the cart to begin your shopping
         </Typography>
-
-        <svg width="220" height="172" viewBox="0 0 220 172" fill="none">
-          <path
-            d="M219.522 38.7773L193.935 118.949C192.022 124.658 187 128.465 181.022 128.465H82.2609C76.5217 128.465 71.0217 124.896 69.1087 119.663L31.3261 19.0318H9.56522C4.30435 19.0318 0 14.7497 0 9.51591C0 4.28216 4.30435 0 9.56522 0H38.0217C42.087 0 45.6739 2.61687 47.1087 6.42324L86.087 109.433H176.957L197.283 45.2006H84.6522C79.3913 45.2006 75.087 40.9184 75.087 35.6846C75.087 30.4509 79.3913 26.1687 84.6522 26.1687H210.435C213.543 26.1687 216.413 27.834 218.087 30.213C220 32.592 220.478 35.9225 219.522 38.7773ZM87.0435 141.073C82.9783 141.073 78.913 142.739 76.0435 145.593C73.1739 148.448 71.5 152.492 71.5 156.537C71.5 160.581 73.1739 164.625 76.0435 167.48C78.913 170.335 82.9783 172 87.0435 172C91.1087 172 95.1739 170.335 98.0435 167.48C100.913 164.625 102.587 160.581 102.587 156.537C102.587 152.492 100.913 148.448 98.0435 145.593C95.1739 142.739 91.1087 141.073 87.0435 141.073ZM172.891 141.073C168.826 141.073 164.761 142.739 161.891 145.593C159.022 148.448 157.348 152.492 157.348 156.537C157.348 160.581 159.022 164.625 161.891 167.48C164.761 170.335 168.826 172 172.891 172C176.957 172 181.022 170.335 183.891 167.48C186.761 164.625 188.435 160.581 188.435 156.537C188.435 152.492 186.761 148.448 183.891 145.593C181.022 142.739 176.957 141.073 172.891 141.073Z"
-            fill="#000048"
-          />
-        </svg>
+        <Box component="img" src="/logo/image.png" sx={{ width: '220px', mb: 4 }} />
         <br />
-        <Button
-          variant="outlined"
-          onClick={onStartShopping}
-          sx={{
-            mb: 2,
-            borderColor: "#000048",
-            color: "#000048",
-            fontWeight: "bold",
-            padding: "10px 24px",
-            textTransform: "none",
-          }}
-        >
+        <Button variant="outlined" onClick={onStartShopping} sx={{ fontFamily: "Gallix, sans-serif", borderColor: "#000048", color: "#000048", fontWeight: "bold", padding: "10px 24px", textTransform: "none" }}>
           Add Products Manually (Demo Mode)
         </Button>
       </Box>
@@ -154,316 +52,156 @@ const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
   );
 };
 
-// --- Memoized Components ---
-const CartSummary = React.memo(({ cart, total }) => {
-  const totalAmount = typeof total === "object" ? total.total || 0 : total || 0;
+// --- Cart Item Component ---
+const CartItemComponent = React.memo(({ cartItem }) => {
+  if (!cartItem || !cartItem.item) return null;
+  const unitPrice = Number(cartItem.item.price || 0);
+  const rowSubtotal = unitPrice * cartItem.quantity;
+  const getImageUrl = (path) => path ? `/logo/${path.split(/[\\/]/).pop()}` : "/logo/16.png";
+
   return (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: 0.8,
-        mb: 2,
-      }}
-    >
-      <Box sx={{ lineHeight: 1.2 }}>
-        <Typography
-          variant="h6"
-          sx={{ fontFamily: "Gallix, sans-serif", fontSize: "0.9rem" }}
-        >
-          Total Items: {cart.reduce((sum, item) => sum + item.quantity, 0)}
-        </Typography>
-        <Typography
-          variant="h4"
-          sx={{
-            fontFamily: "Gallix, sans-serif",
-            fontWeight: "bold",
-            fontSize: "1.3rem",
-          }}
-        >
-          ₹{Number(totalAmount).toFixed(2)}
-        </Typography>
+    <Box sx={{
+      width: { xs: '100%', md: '772px' }, height: { xs: 'auto', md: '106px' },
+      padding: '12px', gap: '20px', border: '1px solid #E3E3E3', borderRadius: '0px',
+      display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', bgcolor: '#ffffff'
+    }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', width: { xs: '100%', sm: '282px' } }}>
+        <Box component="img" src={getImageUrl(cartItem.item.imageUrl)} sx={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+        <Box sx={{ ml: '16px' }}>
+          <Typography sx={{ fontFamily: "Gallix, sans-serif", color: '#000048', fontSize: '16px', fontWeight: 600 }}>{cartItem.item.name}</Typography>
+          <Typography sx={{ fontFamily: "Gallix, sans-serif", fontSize: '14px', color: '#848484' }}>{cartItem.item.unit}</Typography>
+          <Typography sx={{ fontFamily: "Gallix, sans-serif", fontSize: '12px', color: '#B0B0B0' }}>{cartItem.item.rfidTag ? `#${cartItem.item.rfidTag}` : "#Scanning..."}</Typography>
+        </Box>
       </Box>
-      <ShoppingCartIcon sx={{ fontSize: 40, opacity: 0.7 }} />
+      <Box sx={{ width: { xs: '100%', sm: '285px' }, display: 'flex', ml: 'auto', justifyContent: 'space-between' }}>
+        <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center' }}>{cartItem.quantity}</Typography>
+        <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center' }}>${unitPrice.toFixed(2)}</Typography>
+        <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center', fontWeight: 600, color: '#000048' }}>${rowSubtotal.toFixed(2)}</Typography>
+      </Box>
     </Box>
   );
 });
 
-const CartItemComponent = React.memo(
-  ({ cartItem, onQuantityChange, onRemove }) => (
-    <Paper sx={{ mb: 1.2, p: 1.5, bgcolor: "#ffffff", borderRadius: 2 }}>
-      <Box sx={{ display: "flex", gap: 1.5 }}>
-        <ListItemAvatar>
-          <Avatar
-            variant="rounded"
-            sx={{ width: 65, height: 65, bgcolor: "#f0f0f0" }}
-          />
-        </ListItemAvatar>
-        <Box sx={{ flex: 1 }}>
-          <Typography
-            sx={{
-              fontFamily: "Gallix, sans-serif",
-              fontWeight: "bold",
-              color: "#000048",
-            }}
-          >
-            {cartItem.item.name}
-          </Typography>
-          <Typography variant="body2" sx={{ opacity: 0.7 }}>
-            {cartItem.item.brand} • {cartItem.item.unit}
-          </Typography>
-          <Typography sx={{ fontWeight: "bold" }}>
-            ₹{cartItem.item.price.toFixed(2)}
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <IconButton
-            onClick={() => onQuantityChange(cartItem.id, cartItem.quantity - 1)}
-          >
-            <RemoveIcon />
-          </IconButton>
-          <Typography sx={{ fontWeight: "bold" }}>
-            {cartItem.quantity}
-          </Typography>
-          <IconButton
-            onClick={() => onQuantityChange(cartItem.id, cartItem.quantity + 1)}
-          >
-            <AddIcon />
-          </IconButton>
-          <IconButton
-            onClick={() => onRemove(cartItem.id)}
-            sx={{ color: "#dc004e" }}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Box>
-      </Box>
-    </Paper>
-  )
-);
-
-const ShoppingHandheld = ({
-  userId,
-  user,
-  cart,
-  total,
-  onUpdateCart,
-  onEndShopping,
-  onLogout,
-}) => {
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+// --- Main ShoppingHandheld Component ---
+const ShoppingHandheld = ({ userId, user, cart = [], onUpdateCart, onEndShopping, onLogout }) => {
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const [showManualAdd, setShowManualAdd] = useState(false);
+  const [error, setError] = useState("");
 
   const availableProducts = [
-    {
-      id: 1,
-      name: "Fresh Apples",
-      brand: "Farm Fresh",
-      price: 120,
-      rfidTag: "RFID0001",
-    },
-    {
-      id: 2,
-      name: "Bananas",
-      brand: "Organic",
-      price: 50,
-      rfidTag: "RFID0002",
-    },
-    {
-      id: 3,
-      name: "Oranges",
-      brand: "Citrus Fresh",
-      price: 85,
-      rfidTag: "RFID0003",
-    },
-    {
-      id: 6,
-      name: "Tomatoes",
-      brand: "Fresh Farm",
-      price: 35,
-      rfidTag: "RFID0006",
-    },
-    {
-      id: 11,
-      name: "Full Cream Milk",
-      brand: "Amul",
-      price: 58,
-      rfidTag: "RFID0011",
-    },
-    {
-      id: 16,
-      name: "White Bread",
-      brand: "Britannia",
-      price: 40,
-      rfidTag: "RFID0016",
-    },
+    { id: 1, name: "Fresh Apples", price: 3.99, rfidTag: "RFID0001" },
+    { id: 2, name: "Bananas", price: 0.99, rfidTag: "RFID0002" },
+    { id: 3, name: "Oranges", price: 3.99, rfidTag: "RFID0003" },
+    { id: 6, name: "Tomatoes", price: 2.49, rfidTag: "RFID0006" },
+    { id: 11, name: "Full Cream Milk", price: 3.89, rfidTag: "RFID0011" },
+    { id: 16, name: "White Bread", price: 2.99, rfidTag: "RFID0016" },
   ];
 
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        const cartResponse = await getCart(userId);
-        const totalResponse = await getCartTotal(userId);
-        onUpdateCart(cartResponse.data, totalResponse.data);
-        setLoading(false);
-      } catch (err) {
-        setLoading(false);
-      }
-    };
-    fetchCart();
-  }, [userId, onUpdateCart]);
+  const currentTotal = (cart || []).reduce((acc, item) => acc + (Number(item.item?.price || 0) * item.quantity), 0);
+  const orderTotal = currentTotal + 2.50;
 
   const handleAddManualProduct = async (product) => {
     try {
       setError("");
       await addItemsToCart(userId, product.rfidTag);
-      const cartResponse = await getCart(userId);
-      const totalResponse = await getCartTotal(userId);
-      onUpdateCart(cartResponse.data, totalResponse.data);
+      const cartRes = await getCart(userId);
+      const totalRes = await getCartTotal(userId);
+      onUpdateCart(cartRes.data || cartRes, totalRes.subtotal || 0);
     } catch (err) {
       setError(`Failed to add ${product.name}`);
     }
   };
 
-  const handleQuantityChange = async (id, qty) => {
-    if (qty < 1) return;
-    try {
-      await updateCartItem(userId, id, qty);
-      const cartResponse = await getCart(userId);
-      const totalResponse = await getCartTotal(userId);
-      onUpdateCart(cartResponse.data, totalResponse.data);
-    } catch (err) {
-      setError("Update failed");
-    }
-  };
-
-  const handleRemoveItem = async (id) => {
-    try {
-      await removeCartItem(userId, id);
-      const cartResponse = await getCart(userId);
-      const totalResponse = await getCartTotal(userId);
-      onUpdateCart(cartResponse.data, totalResponse.data);
-    } catch (err) {
-      setError("Remove failed");
-    }
-  };
-
-  if (loading) return null;
-
-  // --- SHOW EMPTY VIEW ---
   if (cart.length === 0 && !showManualAdd) {
-    return (
-      <EmptyCartView
-        user={user}
-        onLogout={onLogout}
-        onStartShopping={() => setShowManualAdd(true)}
-      />
-    );
+    return <EmptyCartView user={user} onLogout={onLogout} onStartShopping={() => setShowManualAdd(true)} />;
   }
 
-  // --- SHOW ACTIVE SHOPPING VIEW ---
   return (
-    <>
-      {/* FIXED HEADER: Now includes showWallet={true} to show balance everywhere */}
+    <Box sx={{ bgcolor: '#FFFFFF', minHeight: '100vh', width: '100%' }}>
+      {/* App Header is present, but showWallet is NOT passed, keeping the UI exactly the same height */}
       <AppHeader user={user} onLogout={onLogout} />
+      
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, mt: { xs: '60px', md: '60px' } }}>
+        
+        <Box sx={{ flex: 1, p: { xs: '20px', md: '40px' }, mr: { md: '427px' } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, gap: '16px' }}>
+            <Box component="img" src="/logo/BoyLogo.png" sx={{ width: '38px', height: '38px' }} />
+            <Typography sx={{ fontFamily: "Gallix, sans-serif", color: '#000048', fontWeight: 600, fontSize: '20px' }}>Welcome {user?.name || 'User'} !</Typography>
+          </Box>
 
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: "#f5f5f5",
-          pt: "80px", // Proper padding so content doesn't hide under the header
-        }}
-      >
-        <Box sx={{ maxWidth: 900, mx: "auto", px: 2, pb: 4 }}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+          {error && <Alert severity="error" sx={{ mb: 2, fontFamily: "Gallix, sans-serif" }}>{error}</Alert>}
 
-          <Button
-            variant="outlined"
-            onClick={() => setShowManualAdd(!showManualAdd)}
-            sx={{
-              mb: 2,
-              borderColor: "#000048",
-              color: "#000048",
-              fontWeight: "bold",
-            }}
-          >
-            {showManualAdd ? "Hide Manual Add" : "Add Products Manually"}
-          </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+            <Button variant="outlined" onClick={() => setShowManualAdd(!showManualAdd)} sx={{ fontFamily: "Gallix, sans-serif", borderColor: "#000048", color: "#000048", fontWeight: "bold", textTransform: 'none' }}>
+              {showManualAdd ? "Hide Manual Add" : "Add Products Manually"}
+            </Button>
+            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 500, color: '#000048', fontSize: '20px', display: 'flex', alignItems: 'center' }}>
+               Total Item : {cart.length}
+            </Typography>
+          </Box>
 
           {showManualAdd && (
             <Paper sx={{ p: 2, mb: 2, bgcolor: "#f9f9f9", borderRadius: 2 }}>
-              <Typography
-                variant="h6"
-                sx={{ mb: 2, color: "#000048", fontWeight: "bold" }}
-              >
-                Available Products (click to Add)
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-                  gap: 1.5,
-                }}
-              >
-                {availableProducts.map((product) => (
-                  <Paper
-                    key={product.id}
-                    onClick={() => handleAddManualProduct(product)}
-                    sx={{
-                      p: 1.5,
-                      cursor: "pointer",
-                      "&:hover": { boxShadow: 3 },
-                    }}
-                  >
-                    <Typography sx={{ fontWeight: "bold", fontSize: "0.9rem" }}>
-                      {product.name}
-                    </Typography>
-                    <Typography
-                      color="success.main"
-                      sx={{ fontWeight: "bold" }}
-                    >
-                      ₹{product.price}
-                    </Typography>
+              <Typography sx={{ fontFamily: "Gallix, sans-serif", mb: 2, color: "#000048", fontWeight: "bold" }}>Available Products (Click to Add)</Typography>
+              <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 1.5 }}>
+                {availableProducts.map((p) => (
+                  <Paper key={p.id} onClick={() => handleAddManualProduct(p)} sx={{ p: 1.5, cursor: "pointer", "&:hover": { boxShadow: 3 } }}>
+                    <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: "bold", fontSize: "0.9rem" }}>{p.name}</Typography>
+                    <Typography sx={{ fontFamily: "Gallix, sans-serif", color: "#2DB81F", fontWeight: "bold" }}>${p.price.toFixed(2)}</Typography>
                   </Paper>
                 ))}
               </Box>
             </Paper>
           )}
 
-          <CartSummary cart={cart} total={total} />
+          <Box sx={{ display: 'flex', mb: 1, px: '20px' }}>
+             <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '282px', fontWeight: 600, color: '#000048', fontSize: '18px' }}>Product Detail</Typography>
+             {isDesktop && (
+               <Box sx={{ display: 'flex', width: '285px', ml: 'auto', justifyContent: 'space-between' }}>
+                  <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center', fontWeight: 600 }}>Quantity</Typography>
+                  <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center', fontWeight: 600 }}>Price</Typography>
+                  <Typography sx={{ fontFamily: "Gallix, sans-serif", width: '81px', textAlign: 'center', fontWeight: 600 }}>Subtotal</Typography>
+               </Box>
+             )}
+          </Box>
+          <Divider />
+          <List sx={{ p: 0 }}>{cart.map((item) => <CartItemComponent key={item.id} cartItem={item} />)}</List>
+        </Box>
 
-          <List>
-            {cart.map((item) => (
-              <CartItemComponent
-                key={item.id}
-                cartItem={item}
-                onQuantityChange={handleQuantityChange}
-                onRemove={handleRemoveItem}
-              />
-            ))}
-          </List>
-
-          {cart.length > 0 && (
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={onEndShopping}
-              sx={{ mt: 2, bgcolor: "#000048", py: 2, fontWeight: "bold" }}
-            >
-              Proceed to Checkout
-            </Button>
-          )}
+        {/* SIDEBAR */}
+        <Box sx={{ 
+          width: { xs: '100%', md: '427px' }, bgcolor: '#F2F2F2', display: 'flex', flexDirection: 'column', p: '24px',
+          position: { xs: 'relative', md: 'fixed' }, right: 0, top: '60px', height: 'calc(100vh - 60px)'
+        }}>
+          <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 500, fontSize: '32px', color: '#000048', mb: 2 }}>Order Summary</Typography>
+          <Divider sx={{ borderColor: '#000048', mb: 2 }} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontSize: '18px' }}>Subtotal</Typography>
+            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600 }}>${currentTotal.toFixed(2)}</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontSize: '18px' }}>Tax</Typography>
+            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600 }}>$2.50</Typography>
+          </Box>
+          <Divider sx={{ my: 2 }} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: '20px', color: '#000048' }}>Order Total</Typography>
+            <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: '20px', color: '#000048' }}>${orderTotal.toFixed(2)}</Typography>
+          </Box>
+          <Button onClick={onEndShopping} sx={{ fontFamily: "Gallix, sans-serif", width: '100%', height: '56px', bgcolor: '#26EFE9', color: '#000048', borderRadius: '8px', fontWeight: 600, fontSize: '20px', textTransform: 'none' }}>
+            Proceed to Checkout
+          </Button>
+          
+          <Box sx={{ bgcolor: '#000048', p: '24px', mx: -3, mb: -3, mt: 'auto' }}>
+            <Typography sx={{ fontFamily: "Gallix, sans-serif", color: '#FFFFFF', mb: 1 }}>Cart Total : ${orderTotal.toFixed(2)}</Typography>
+            <Typography sx={{ fontFamily: "Gallix, sans-serif", color: orderTotal > (user?.walletBalance || 0) ? '#FF0000' : '#2DB81F', fontWeight: 600, fontSize: '20px' }}>
+              Wallet Balance : $ {user?.walletBalance || '100'}
+            </Typography>
+          </Box>
         </Box>
       </Box>
-    </>
+    </Box>
   );
 };
 
