@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Button,
   Typography,
@@ -8,19 +8,19 @@ import {
   useMediaQuery,
   useTheme,
   Paper,
-  Alert
+  Alert,
+  Dialog,
+  DialogContent,
+  IconButton
 } from '@mui/material';
 import { getCart, getCartTotal, addItemsToCart } from '../api';
 import AppHeader from './AppHeader';
+import PaymentScan from './PaymentScan';
 
-
-
-
-// --- EmptyCartView Component (Header WITH Wallet Balance) ---
+// --- EmptyCartView Component ---
 const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
   return (
     <Box sx={{ width: "100vw", height: "100vh", bgcolor: "#FFFFFF", overflow: "hidden" }}>
-      {/* showWallet={true} ensures balance appears here */}
       <AppHeader user={user} onLogout={onLogout} showWallet={true} />
       <Box sx={{ 
         width: "100%", 
@@ -88,6 +88,10 @@ const ShoppingHandheld = ({ userId, user, cart = [], onUpdateCart, onEndShopping
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const [showManualAdd, setShowManualAdd] = useState(false);
   const [error, setError] = useState("");
+  
+  // Checkout Dialog States
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [showPaymentScan, setShowPaymentScan] = useState(false);
 
   const availableProducts = [
     { id: 1, name: "Fresh Apples", price: 3.99, rfidTag: "RFID0001" },
@@ -113,17 +117,29 @@ const ShoppingHandheld = ({ userId, user, cart = [], onUpdateCart, onEndShopping
     }
   };
 
+  // Flow Handlers
+  const handleProceedToCheckout = () => setOpenConfirmDialog(true);
+  const handleCancelConfirmation = () => setOpenConfirmDialog(false);
+  
+  const handleConfirmAndOpenPayment = () => {
+    setOpenConfirmDialog(false);
+    setShowPaymentScan(true); 
+  };
+
+  const handlePaymentAuthorized = (authData) => {
+    setShowPaymentScan(false);
+    onEndShopping(authData); // Informs App.js to move to confirmation step
+  };
+
   if (cart.length === 0 && !showManualAdd) {
     return <EmptyCartView user={user} onLogout={onLogout} onStartShopping={() => setShowManualAdd(true)} />;
   }
 
   return (
     <Box sx={{ bgcolor: '#FFFFFF', minHeight: '100vh', width: '100%' }}>
-      {/* App Header is present, but showWallet is NOT passed, keeping the UI exactly the same height */}
       <AppHeader user={user} onLogout={onLogout} />
       
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, mt: { xs: '60px', md: '60px' } }}>
-        
         <Box sx={{ flex: 1, p: { xs: '20px', md: '40px' }, mr: { md: '427px' } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, gap: '16px' }}>
             <Box component="img" src="/logo/BoyLogo.png" sx={{ width: '38px', height: '38px' }} />
@@ -137,7 +153,7 @@ const ShoppingHandheld = ({ userId, user, cart = [], onUpdateCart, onEndShopping
               {showManualAdd ? "Hide Manual Add" : "Add Products Manually"}
             </Button>
             <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 500, color: '#000048', fontSize: '20px', display: 'flex', alignItems: 'center' }}>
-               Total Item : {cart.length}
+                Total Item : {cart.length}
             </Typography>
           </Box>
 
@@ -189,7 +205,8 @@ const ShoppingHandheld = ({ userId, user, cart = [], onUpdateCart, onEndShopping
             <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: '20px', color: '#000048' }}>Order Total</Typography>
             <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: '20px', color: '#000048' }}>${orderTotal.toFixed(2)}</Typography>
           </Box>
-          <Button onClick={onEndShopping} sx={{ fontFamily: "Gallix, sans-serif", width: '100%', height: '56px', bgcolor: '#26EFE9', color: '#000048', borderRadius: '8px', fontWeight: 600, fontSize: '20px', textTransform: 'none' }}>
+          
+          <Button onClick={handleProceedToCheckout} sx={{ fontFamily: "Gallix, sans-serif", width: '100%', height: '56px', bgcolor: '#26EFE9', color: '#000048', borderRadius: '8px', fontWeight: 600, fontSize: '20px', textTransform: 'none' }}>
             Proceed to Checkout
           </Button>
           
@@ -201,8 +218,86 @@ const ShoppingHandheld = ({ userId, user, cart = [], onUpdateCart, onEndShopping
           </Box>
         </Box>
       </Box>
+
+      {/* CONFIRMATION DIALOG */}
+      <Dialog
+        open={openConfirmDialog}
+        onClose={handleCancelConfirmation}
+        PaperProps={{
+          sx: { width: "766px", maxWidth: "95%", borderRadius: "8px", p: "24px", background: "#FFFFFF" },
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: "12px" }}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Box sx={{ width: "32px", height: "32px", mr: "12px", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "#000048", borderRadius: "50%" }}>
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M25.3335 16L17.3335 24L15.4668 22.1333L21.5668 16L15.4668 9.86667L17.3335 8L25.3335 16ZM17.3335 16L9.33346 24L7.4668 22.1333L13.5668 16L7.4668 9.86667L9.33346 8L17.3335 16Z" fill="white" /></svg>
+              </Box>
+              <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 500, fontSize: "24px", color: "#000048" }}>Confirm Items</Typography>
+            </Box>
+            <IconButton onClick={handleCancelConfirmation} sx={{ p: 0 }}>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11.113 8.99872L17.5567 2.56902C17.8389 2.2868 17.9974 1.90402 17.9974 1.5049C17.9974 1.10577 17.8389 0.722997 17.5567 0.440774L9 6.88546L2.57121 0.440774C2.28903 0.158551 1.90631 0 1.50724 0C1.10817 0 0.725452 0.158551 0.443269 0.440774C0.161086 0.722997 0.00255743 1.10577 0.00255743 1.5049L6.88704 8.99872L0.443269 15.4284L1.50724 18L9 11.112L16.4928 18L17.5567 15.4284L11.113 8.99872Z" fill="#000048" /></svg>
+            </IconButton>
+          </Box>
+
+          <Box sx={{ width: "100%", height: "1px", mb: "20px", bgcolor: "#000048" }} />
+
+          <Typography sx={{ fontFamily: "Gallix, sans-serif", fontSize: "17px", color: "#000048", mb: "32px" }}>
+            Please verify the total items and order amount before proceeding.
+          </Typography>
+
+          <Box sx={{ display: "flex", gap: "21px", mb: "48px", justifyContent: "center" }}>
+            <Box sx={summaryBoxStyle}>
+              <Typography sx={summaryLabelStyle}>Total items</Typography>
+              <Typography sx={summaryValueStyle}>{cart.length}</Typography>
+            </Box>
+            <Box sx={summaryBoxStyle}>
+              <Typography sx={summaryLabelStyle}>Order Total</Typography>
+              <Typography sx={summaryValueStyle}>$ {orderTotal.toFixed(2)}</Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: "flex", gap: "32px", justifyContent: "center" }}>
+            <Button onClick={handleCancelConfirmation} sx={outlineButtonStyle}>Review Cart</Button>
+            <Button onClick={handleConfirmAndOpenPayment} variant="contained" sx={containedButtonStyle}>Confirm & Checkout</Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* PAYMENT SCAN DIALOG */}
+      <Dialog
+        open={showPaymentScan}
+        onClose={() => setShowPaymentScan(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "16px", overflow: "hidden" } }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <PaymentScan
+            onAuthorized={handlePaymentAuthorized}
+            onClose={() => setShowPaymentScan(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
+};
+
+const summaryBoxStyle = {
+  width: "194px", height: "100px", display: "flex", flexDirection: "column",
+  alignItems: "center", justifyContent: "center", borderRadius: "4px",
+  border: "1px solid #EAEAEA", background: "#FFFFFF", boxShadow: "0px 4px 4px 0px #F4F4F4",
+};
+const summaryLabelStyle = { fontFamily: "Gallix, sans-serif", fontSize: "20px", color: "#000048", mb: 0.5 };
+const summaryValueStyle = { fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color: "#000048" };
+const outlineButtonStyle = {
+  width: "276px", height: "56px", borderRadius: "8px", border: "1px solid #000048",
+  fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color: "#000048", textTransform: "none",
+};
+const containedButtonStyle = {
+  width: "276px", height: "56px", borderRadius: "8px", bgcolor: "#000048",
+  fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color: "#FFFFFF",
+  textTransform: "none", "&:hover": { bgcolor: "#000066" },
 };
 
 export default ShoppingHandheld;
