@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+
 import {
   Button,
   Typography,
@@ -12,20 +13,37 @@ import {
   Dialog,
   DialogContent,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
+
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import { getCart, getCartTotal, addItemsToCart } from "../api";
+
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+
+import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
+
+import CloseIcon from "@mui/icons-material/Close";
+
+import { getCart, getCartTotal, addItemsToCart, proceedToPay } from "../api";
+
 import AppHeader from "./AppHeader";
+
 import PaymentScan from "./PaymentScan";
 
+import PaymentFailed from "./PaymentFailed";
+
 // --- EmptyCartView Component ---
+
 const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
   return (
     <Box
       sx={{
         width: "100vw",
+
         height: "100vh",
+
         bgcolor: "#FFFFFF",
+
         overflow: "hidden",
       }}
     >
@@ -33,22 +51,34 @@ const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
       <Box
         sx={{
           width: "100%",
+
           height: "100%",
+
           display: "flex",
+
           flexDirection: "column",
+
           alignItems: "center",
+
           justifyContent: "center",
+
           position: "relative",
+
           pt: "60px",
         }}
       >
         <Box
           sx={{
             position: "absolute",
+
             top: "77px",
+
             left: "33px",
+
             display: "flex",
+
             alignItems: "center",
+
             gap: "16px",
           }}
         >
@@ -60,8 +90,11 @@ const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
           <Typography
             sx={{
               fontFamily: "Gallix, sans-serif",
+
               fontWeight: 600,
+
               fontSize: "20px",
+
               color: "#000048",
             }}
           >
@@ -71,9 +104,13 @@ const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
         <Typography
           sx={{
             fontFamily: "Gallix, sans-serif",
+
             fontWeight: 500,
+
             fontSize: "32px",
+
             mb: 1.5,
+
             color: "#000048",
           }}
         >
@@ -82,10 +119,15 @@ const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
         <Typography
           sx={{
             fontFamily: "Gallix, sans-serif",
+
             fontWeight: 500,
+
             fontSize: "20px",
+
             opacity: 0.8,
+
             color: "#000048",
+
             mb: 5,
           }}
         >
@@ -102,10 +144,15 @@ const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
           onClick={onStartShopping}
           sx={{
             fontFamily: "Gallix, sans-serif",
+
             borderColor: "#000048",
+
             color: "#000048",
+
             fontWeight: "bold",
+
             padding: "10px 24px",
+
             textTransform: "none",
           }}
         >
@@ -117,10 +164,14 @@ const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
 };
 
 // --- Cart Item Component ---
+
 const CartItemComponent = React.memo(({ cartItem }) => {
   if (!cartItem || !cartItem.item) return null;
+
   const unitPrice = Number(cartItem.item.price || 0);
+
   const rowSubtotal = unitPrice * cartItem.quantity;
+
   const getImageUrl = (path) =>
     path ? `/logo/${path.split(/[\\/]/).pop()}` : "/logo/16.png";
 
@@ -128,21 +179,32 @@ const CartItemComponent = React.memo(({ cartItem }) => {
     <Box
       sx={{
         width: { xs: "100%", md: "772px" },
+
         height: { xs: "auto", md: "106px" },
+
         padding: "12px",
+
         gap: "20px",
+
         border: "1px solid #E3E3E3",
+
         borderRadius: "0px",
+
         display: "flex",
+
         flexDirection: { xs: "column", sm: "row" },
+
         alignItems: "center",
+
         bgcolor: "#ffffff",
       }}
     >
       <Box
         sx={{
           display: "flex",
+
           alignItems: "center",
+
           width: { xs: "100%", sm: "282px" },
         }}
       >
@@ -155,8 +217,11 @@ const CartItemComponent = React.memo(({ cartItem }) => {
           <Typography
             sx={{
               fontFamily: "Gallix, sans-serif",
+
               color: "#000048",
+
               fontSize: "16px",
+
               fontWeight: 600,
             }}
           >
@@ -165,7 +230,9 @@ const CartItemComponent = React.memo(({ cartItem }) => {
           <Typography
             sx={{
               fontFamily: "Gallix, sans-serif",
+
               fontSize: "14px",
+
               color: "#848484",
             }}
           >
@@ -174,7 +241,9 @@ const CartItemComponent = React.memo(({ cartItem }) => {
           <Typography
             sx={{
               fontFamily: "Gallix, sans-serif",
+
               fontSize: "12px",
+
               color: "#B0B0B0",
             }}
           >
@@ -187,15 +256,20 @@ const CartItemComponent = React.memo(({ cartItem }) => {
       <Box
         sx={{
           width: { xs: "100%", sm: "285px" },
+
           display: "flex",
+
           ml: "auto",
+
           justifyContent: "space-between",
         }}
       >
         <Typography
           sx={{
             fontFamily: "Gallix, sans-serif",
+
             width: "81px",
+
             textAlign: "center",
           }}
         >
@@ -204,7 +278,9 @@ const CartItemComponent = React.memo(({ cartItem }) => {
         <Typography
           sx={{
             fontFamily: "Gallix, sans-serif",
+
             width: "81px",
+
             textAlign: "center",
           }}
         >
@@ -213,9 +289,13 @@ const CartItemComponent = React.memo(({ cartItem }) => {
         <Typography
           sx={{
             fontFamily: "Gallix, sans-serif",
+
             width: "81px",
+
             textAlign: "center",
+
             fontWeight: 600,
+
             color: "#000048",
           }}
         >
@@ -227,41 +307,70 @@ const CartItemComponent = React.memo(({ cartItem }) => {
 });
 
 // --- Main ShoppingHandheld Component ---
+
 const ShoppingHandheld = ({
   userId,
+
   user,
+
   cart = [],
+
   onUpdateCart,
+
   onEndShopping,
+
   onLogout,
 }) => {
   const theme = useTheme();
+
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+
   const [showManualAdd, setShowManualAdd] = useState(false);
+
   const [error, setError] = useState("");
 
   // Checkout Dialog States
+
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+
   const [showPaymentScan, setShowPaymentScan] = useState(false);
+
   const [balanceDialogOpen, setBalanceDialogOpen] = useState(false);
+
+  // Payment States
+
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+
+  const [, setPaymentData] = useState(null);
+
+  const [paymentError, setPaymentError] = useState("");
 
   const availableProducts = [
     { id: 1, name: "Fresh Apples", price: 3.99, rfidTag: "RFID0001" },
+
     { id: 2, name: "Bananas", price: 0.99, rfidTag: "RFID0002" },
+
     { id: 3, name: "Oranges", price: 3.99, rfidTag: "RFID0003" },
+
     { id: 6, name: "Tomatoes", price: 2.49, rfidTag: "RFID0006" },
+
     { id: 11, name: "Full Cream Milk", price: 3.89, rfidTag: "RFID0011" },
+
     { id: 16, name: "White Bread", price: 2.99, rfidTag: "RFID0016" },
   ];
 
   const currentTotal = (cart || []).reduce(
     (acc, item) => acc + Number(item.item?.price || 0) * item.quantity,
+
     0
   );
+
   const orderTotal = currentTotal + 2.5;
 
-  // Wallet Logic
   const walletBalance = Number(user?.walletBalance || 0);
+
   const additionalRequired =
     orderTotal > walletBalance
       ? (orderTotal - walletBalance).toFixed(2)
@@ -270,22 +379,26 @@ const ShoppingHandheld = ({
   const handleAddManualProduct = async (product) => {
     try {
       setError("");
+
       await addItemsToCart(userId, product.rfidTag);
+
       const cartRes = await getCart(userId);
+
       const totalRes = await getCartTotal(userId);
+
       onUpdateCart(cartRes.data || cartRes, totalRes.subtotal || 0);
     } catch (err) {
       setError(`Failed to add ${product.name}`);
     }
   };
 
-  // Flow Handlers
   const handleProceedToCheckout = () => setOpenConfirmDialog(true);
+
   const handleCancelConfirmation = () => setOpenConfirmDialog(false);
 
   const handleConfirmAndOpenPayment = () => {
     setOpenConfirmDialog(false);
-    // Check balance logic
+
     if (orderTotal > walletBalance) {
       setBalanceDialogOpen(true);
     } else {
@@ -293,9 +406,68 @@ const ShoppingHandheld = ({
     }
   };
 
-  const handlePaymentAuthorized = (authData) => {
+  // Payment authorized - process payment
+
+  const handlePaymentAuthorized = async (authData) => {
     setShowPaymentScan(false);
-    onEndShopping(authData);
+
+    setIsProcessing(true);
+
+    setPaymentError("");
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const response = await proceedToPay(user.id);
+
+      setPaymentData(response.data);
+
+      setIsProcessing(false);
+
+      setShowPaymentSuccess(true);
+    } catch (err) {
+      setIsProcessing(false);
+
+      setPaymentError(
+        err?.response?.data?.error ||
+          err?.message ||
+          "Payment Failed. Please try again or contact support."
+      );
+    }
+  };
+
+  // FIXED: Close success popup and go to starting page
+
+  const handlePaymentSuccessClose = () => {
+    setShowPaymentSuccess(false);
+
+    setPaymentData(null);
+
+    setIsProcessing(false);
+
+    setPaymentError("");
+
+    // Go back to starting/welcome page
+
+    onLogout && onLogout();
+  };
+
+  // Retry payment
+
+  const handlePaymentRetry = () => {
+    setPaymentError("");
+
+    setIsProcessing(false);
+
+    setShowPaymentScan(true);
+  };
+
+  // Close payment error
+
+  const handlePaymentErrorClose = () => {
+    setPaymentError("");
+
+    setIsProcessing(false);
   };
 
   if (cart.length === 0 && !showManualAdd) {
@@ -311,16 +483,26 @@ const ShoppingHandheld = ({
   return (
     <Box sx={{ bgcolor: "#FFFFFF", minHeight: "100vh", width: "100%" }}>
       <AppHeader user={user} onLogout={onLogout} />
-
       <Box
         sx={{
           display: "flex",
+
           flexDirection: { xs: "column", md: "row" },
+
           mt: "60px",
         }}
       >
+        {/* LEFT SIDE - Cart Items */}
         <Box
-          sx={{ flex: 1, p: { xs: "20px", md: "40px" }, mr: { md: "427px" } }}
+          sx={{
+            flex: 1,
+
+            p: { xs: "20px", md: "40px" },
+
+            mr: { md: "427px" },
+
+            minHeight: "calc(100vh - 60px)",
+          }}
         >
           <Box
             sx={{ display: "flex", alignItems: "center", mb: 4, gap: "16px" }}
@@ -333,8 +515,11 @@ const ShoppingHandheld = ({
             <Typography
               sx={{
                 fontFamily: "Gallix, sans-serif",
+
                 color: "#000048",
+
                 fontWeight: 600,
+
                 fontSize: "20px",
               }}
             >
@@ -350,16 +535,19 @@ const ShoppingHandheld = ({
               {error}
             </Alert>
           )}
-
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
             <Button
               variant="outlined"
               onClick={() => setShowManualAdd(!showManualAdd)}
               sx={{
                 fontFamily: "Gallix, sans-serif",
+
                 borderColor: "#000048",
+
                 color: "#000048",
+
                 fontWeight: "bold",
+
                 textTransform: "none",
               }}
             >
@@ -368,10 +556,15 @@ const ShoppingHandheld = ({
             <Typography
               sx={{
                 fontFamily: "Gallix, sans-serif",
+
                 fontWeight: 500,
+
                 color: "#000048",
+
                 fontSize: "20px",
+
                 display: "flex",
+
                 alignItems: "center",
               }}
             >
@@ -384,8 +577,11 @@ const ShoppingHandheld = ({
               <Typography
                 sx={{
                   fontFamily: "Gallix, sans-serif",
+
                   mb: 2,
+
                   color: "#000048",
+
                   fontWeight: "bold",
                 }}
               >
@@ -394,7 +590,9 @@ const ShoppingHandheld = ({
               <Box
                 sx={{
                   display: "grid",
+
                   gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+
                   gap: 1.5,
                 }}
               >
@@ -404,14 +602,18 @@ const ShoppingHandheld = ({
                     onClick={() => handleAddManualProduct(p)}
                     sx={{
                       p: 1.5,
+
                       cursor: "pointer",
+
                       "&:hover": { boxShadow: 3 },
                     }}
                   >
                     <Typography
                       sx={{
                         fontFamily: "Gallix, sans-serif",
+
                         fontWeight: "bold",
+
                         fontSize: "0.9rem",
                       }}
                     >
@@ -420,7 +622,9 @@ const ShoppingHandheld = ({
                     <Typography
                       sx={{
                         fontFamily: "Gallix, sans-serif",
+
                         color: "#2DB81F",
+
                         fontWeight: "bold",
                       }}
                     >
@@ -431,34 +635,44 @@ const ShoppingHandheld = ({
               </Box>
             </Paper>
           )}
-
           <Box sx={{ display: "flex", mb: 1, px: "20px" }}>
             <Typography
               sx={{
                 fontFamily: "Gallix, sans-serif",
+
                 width: "282px",
+
                 fontWeight: 600,
+
                 color: "#000048",
+
                 fontSize: "18px",
               }}
             >
               Product Detail
             </Typography>
+
             {isDesktop && (
               <Box
                 sx={{
                   display: "flex",
+
                   width: "285px",
+
                   ml: "auto",
+
                   justifyContent: "space-between",
                 }}
               >
                 <Typography
                   sx={{
                     fontFamily: "Gallix, sans-serif",
+
                     width: "81px",
+                    fontSize: "17px",
                     textAlign: "center",
-                    fontWeight: 600,
+
+                    fontWeight: 500,
                   }}
                 >
                   Quantity
@@ -466,9 +680,12 @@ const ShoppingHandheld = ({
                 <Typography
                   sx={{
                     fontFamily: "Gallix, sans-serif",
+
                     width: "81px",
+                    fontSize: "17px",
                     textAlign: "center",
-                    fontWeight: 600,
+
+                    fontWeight: 500,
                   }}
                 >
                   Price
@@ -476,9 +693,13 @@ const ShoppingHandheld = ({
                 <Typography
                   sx={{
                     fontFamily: "Gallix, sans-serif",
+
                     width: "81px",
+                    fontSize: "17px",
+
                     textAlign: "center",
-                    fontWeight: 600,
+
+                    fontWeight: 500,
                   }}
                 >
                   Subtotal
@@ -494,26 +715,40 @@ const ShoppingHandheld = ({
           </List>
         </Box>
 
-        {/* SIDEBAR */}
+        {/* RIGHT SIDE - Order Summary Sidebar */}
         <Box
           sx={{
             width: { xs: "100%", md: "427px" },
+
             bgcolor: "#F2F2F2",
+
             display: "flex",
+
             flexDirection: "column",
+
             p: "24px",
+
             position: { xs: "relative", md: "fixed" },
+
             right: 0,
-            top: "60px",
-            height: "calc(100vh - 60px)",
+
+            top: { md: "60px" },
+
+            height: { xs: "auto", md: "calc(100vh - 60px)" },
+
+            zIndex: 10,
           }}
         >
           <Typography
             sx={{
               fontFamily: "Gallix, sans-serif",
+
               fontWeight: 500,
+
               fontSize: "32px",
+
               color: "#000048",
+
               mb: 2,
             }}
           >
@@ -548,16 +783,22 @@ const ShoppingHandheld = ({
           <Box
             sx={{
               display: "flex",
+
               justifyContent: "space-between",
+
               alignItems: "center",
+
               mb: 3,
             }}
           >
             <Typography
               sx={{
                 fontFamily: "Gallix, sans-serif",
+
                 fontWeight: 600,
+
                 fontSize: "20px",
+
                 color: "#000048",
               }}
             >
@@ -566,34 +807,55 @@ const ShoppingHandheld = ({
             <Typography
               sx={{
                 fontFamily: "Gallix, sans-serif",
+
                 fontWeight: 600,
+
                 fontSize: "20px",
+
                 color: "#000048",
               }}
             >
               ${orderTotal.toFixed(2)}
             </Typography>
           </Box>
-
           <Button
             onClick={handleProceedToCheckout}
             sx={{
               fontFamily: "Gallix, sans-serif",
+
               width: "100%",
+
               height: "56px",
+
               bgcolor: "#26EFE9",
+
               color: "#000048",
+
               borderRadius: "8px",
+
               fontWeight: 600,
+
               fontSize: "20px",
+
               textTransform: "none",
+
+              "&:hover": { bgcolor: "#1FD6D0" },
             }}
           >
             Proceed to Checkout
           </Button>
-
           <Box
-            sx={{ bgcolor: "#000048", p: "24px", mx: -3, mb: -3, mt: "auto" }}
+            sx={{
+              bgcolor: "#000048",
+
+              p: "24px",
+
+              mx: -3,
+
+              mb: -3,
+
+              mt: "auto",
+            }}
           >
             <Typography
               sx={{ fontFamily: "Gallix, sans-serif", color: "#FFFFFF", mb: 1 }}
@@ -603,8 +865,11 @@ const ShoppingHandheld = ({
             <Typography
               sx={{
                 fontFamily: "Gallix, sans-serif",
+
                 color: orderTotal > walletBalance ? "#FF3B30" : "#2DB81F",
+
                 fontWeight: 600,
+
                 fontSize: "20px",
               }}
             >
@@ -621,9 +886,13 @@ const ShoppingHandheld = ({
         PaperProps={{
           sx: {
             width: "766px",
+
             maxWidth: "95%",
+
             borderRadius: "8px",
+
             p: "24px",
+
             background: "#FFFFFF",
           },
         }}
@@ -632,8 +901,11 @@ const ShoppingHandheld = ({
           <Box
             sx={{
               display: "flex",
+
               alignItems: "center",
+
               justifyContent: "space-between",
+
               mb: "12px",
             }}
           >
@@ -641,12 +913,19 @@ const ShoppingHandheld = ({
               <Box
                 sx={{
                   width: "32px",
+
                   height: "32px",
+
                   mr: "12px",
+
                   display: "flex",
+
                   alignItems: "center",
+
                   justifyContent: "center",
+
                   bgcolor: "#000048",
+
                   borderRadius: "50%",
                 }}
               >
@@ -660,8 +939,11 @@ const ShoppingHandheld = ({
               <Typography
                 sx={{
                   fontFamily: "Gallix, sans-serif",
+
                   fontWeight: 500,
+
                   fontSize: "24px",
+
                   color: "#000048",
                 }}
               >
@@ -669,15 +951,9 @@ const ShoppingHandheld = ({
               </Typography>
             </Box>
             <IconButton onClick={handleCancelConfirmation} sx={{ p: 0 }}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path
-                  d="M11.113 8.99872L17.5567 2.56902C17.8389 2.2868 17.9974 1.90402 17.9974 1.5049C17.9974 1.10577 17.8389 0.722997 17.5567 0.440774L9 6.88546L2.57121 0.440774C2.28903 0.158551 1.90631 0 1.50724 0C1.10817 0 0.725452 0.158551 0.443269 0.440774C0.161086 0.722997 0.00255743 1.10577 0.00255743 1.5049L6.88704 8.99872L0.443269 15.4284L1.50724 18L9 11.112L16.4928 18L17.5567 15.4284L11.113 8.99872Z"
-                  fill="#000048"
-                />
-              </svg>
+              <CloseIcon sx={{ color: "#000048" }} />
             </IconButton>
           </Box>
-
           <Box
             sx={{
               width: "100%",
@@ -686,23 +962,27 @@ const ShoppingHandheld = ({
               bgcolor: "#000048",
             }}
           />
-
           <Typography
             sx={{
               fontFamily: "Gallix, sans-serif",
+
               fontSize: "17px",
+
               color: "#000048",
+
               mb: "32px",
             }}
           >
             Please verify the total items and order amount before proceeding.
           </Typography>
-
           <Box
             sx={{
               display: "flex",
+
               gap: "21px",
+
               mb: "48px",
+
               justifyContent: "center",
             }}
           >
@@ -713,11 +993,10 @@ const ShoppingHandheld = ({
             <Box sx={summaryBoxStyle}>
               <Typography sx={summaryLabelStyle}>Order Total</Typography>
               <Typography sx={summaryValueStyle}>
-                $ {orderTotal.toFixed(2)}
+                ${orderTotal.toFixed(2)}
               </Typography>
             </Box>
           </Box>
-
           <Box sx={{ display: "flex", gap: "32px", justifyContent: "center" }}>
             <Button onClick={handleCancelConfirmation} sx={outlineButtonStyle}>
               Review Cart
@@ -749,119 +1028,341 @@ const ShoppingHandheld = ({
         </DialogContent>
       </Dialog>
 
-      {/* --- Insufficient Balance Popup --- */}
+      {/* PAYMENT PROCESSING POPUP */}
+      <Dialog
+        open={isProcessing}
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+
+            overflow: "hidden",
+
+            minWidth: "400px",
+          },
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <Box
+            sx={{
+              display: "flex",
+
+              flexDirection: "column",
+
+              alignItems: "center",
+
+              justifyContent: "center",
+
+              height: "300px",
+
+              bgcolor: "#FFFFFF",
+
+              gap: 3,
+
+              p: 4,
+            }}
+          >
+            <CircularProgress sx={{ color: "#000048" }} size={70} />
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+
+                fontSize: "24px",
+
+                fontWeight: 600,
+
+                color: "#000048",
+              }}
+            >
+              Payment Processing...
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+
+                fontSize: "16px",
+
+                color: "#5C5C5C",
+              }}
+            >
+              Please do not close the window.
+            </Typography>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* PAYMENT SUCCESS POPUP */}
+      <Dialog
+        open={showPaymentSuccess}
+        onClose={handlePaymentSuccessClose}
+        PaperProps={{
+          sx: {
+            width: "766px",
+
+            maxWidth: "95%",
+
+            borderRadius: "8px",
+
+            border: "1px solid #000048",
+
+            overflow: "hidden",
+          },
+        }}
+      >
+        <DialogContent sx={{ p: "12px 24px 42px 24px" }}>
+          <Box
+            sx={{
+              display: "flex",
+
+              alignItems: "center",
+
+              justifyContent: "space-between",
+
+              mb: 1,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <Box
+                sx={{
+                  width: 40,
+
+                  height: 40,
+
+                  borderRadius: "50%",
+
+                  bgcolor: "#000048",
+
+                  display: "flex",
+
+                  alignItems: "center",
+
+                  justifyContent: "center",
+                }}
+              >
+                <ThumbUpAltIcon sx={{ color: "#FFFFFF", fontSize: 20 }} />
+              </Box>
+              <Typography
+                sx={{
+                  fontFamily: "Poppins, sans-serif",
+
+                  fontWeight: 500,
+
+                  fontSize: "24px",
+
+                  color: "#000048",
+                }}
+              >
+                Payment Successful
+              </Typography>
+            </Box>
+            <IconButton onClick={handlePaymentSuccessClose}>
+              <CloseIcon sx={{ color: "#000048" }} />
+            </IconButton>
+          </Box>
+          <Divider sx={{ borderColor: "#000048", mb: 3 }} />
+          <Box
+            sx={{
+              display: "flex",
+
+              flexDirection: "column",
+
+              alignItems: "center",
+
+              gap: "24px",
+
+              py: 3,
+            }}
+          >
+            <Box
+              sx={{
+                width: 82,
+
+                height: 82,
+
+                borderRadius: "50%",
+
+                bgcolor: "#2DB81F",
+
+                display: "flex",
+
+                alignItems: "center",
+
+                justifyContent: "center",
+              }}
+            >
+              <CheckCircleIcon sx={{ color: "#FFFFFF", fontSize: 49 }} />
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography
+                sx={{
+                  fontFamily: "Poppins, sans-serif",
+
+                  fontSize: "17px",
+
+                  color: "#000048",
+
+                  mb: 1,
+                }}
+              >
+                Your payment has been completed.
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "Poppins, sans-serif",
+
+                  fontSize: "15px",
+
+                  color: "#000048",
+                }}
+              >
+                A receipt has been sent to your linked email-id.
+              </Typography>
+            </Box>
+            <Typography
+              sx={{
+                fontFamily: "Poppins, sans-serif",
+
+                fontWeight: 600,
+
+                fontSize: "20px",
+
+                color: "#000048",
+              }}
+            >
+              Thank you for shopping with us!
+            </Typography>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* PAYMENT FAILED POPUP */}
+
+      {paymentError && (
+        <PaymentFailed
+          open={Boolean(paymentError)}
+          onClose={handlePaymentErrorClose}
+          onRetry={handlePaymentRetry}
+          onExit={onLogout}
+        />
+      )}
+
+      {/* INSUFFICIENT BALANCE POPUP */}
       <Dialog
         open={balanceDialogOpen}
         onClose={() => setBalanceDialogOpen(false)}
         PaperProps={{
           sx: {
-            width: 766,
-            height: 226.01,
+            width: "766px",
+
+            maxWidth: "95%",
+
             borderRadius: "8px",
-            bgcolor: "#ffffff",
-            boxShadow: 6,
-            p: 0,
+
             overflow: "hidden",
           },
         }}
       >
-        <DialogContent
-          sx={{
-            p: "12px 24px 24px 24px",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <Button
-            onClick={() => setBalanceDialogOpen(false)}
-            sx={{ position: "absolute", top: 18, right: 24, minWidth: 0, p: 0 }}
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path
-                d="M11.113 8.99872L17.5567 2.56902C17.8389 2.2868 17.9974 1.90402 17.9974 1.5049C17.9974 1.10577 17.8389 0.722997 17.5567 0.440774C17.2745 0.158551 16.8918 0 16.4928 0C16.0937 0 15.711 0.158551 15.4288 0.440774L9 6.88546L2.57121 0.440774C2.28903 0.158551 1.90631 0 1.50724 0C1.10817 0 0.725452 0.158551 0.443269 0.440774C0.161086 0.722997 0.00255743 1.10577 0.00255743 1.5049C0.00255743 1.90402 0.161086 2.2868 0.443269 2.56902L6.88704 8.99872L0.443269 15.4284C0.302812 15.5678 0.191329 15.7335 0.115249 15.9162C0.0391699 16.0988 0 16.2947 0 16.4925C0 16.6904 0.0391699 16.8863 0.115249 17.0689C0.191329 17.2516 0.302812 17.4173 0.443269 17.5567C0.582579 17.6971 0.74832 17.8086 0.930933 17.8847C1.11355 17.9608 1.30941 18 1.50724 18C1.70507 18 1.90094 17.9608 2.08355 17.8847C2.26616 17.8086 2.4319 17.6971 2.57121 17.5567L9 11.112L15.4288 17.5567C15.5681 17.6971 15.7338 17.8086 15.9165 17.8847C16.0991 17.9608 16.2949 18 16.4928 18C16.6906 18 16.8865 17.9608 17.0691 17.8847C17.2517 17.8086 17.4174 17.6971 17.5567 17.5567C17.6972 17.4173 17.8087 17.2516 17.8848 17.0689C17.9608 16.8863 18 16.6904 18 16.4925C18 16.2947 17.9608 16.0988 17.8848 15.9162C17.8087 15.7335 17.6972 15.5678 17.5567 15.4284L11.113 8.99872Z"
-                fill="#000048"
-              />
-            </svg>
-          </Button>
-
+        <DialogContent sx={{ p: "12px 24px 24px 24px" }}>
           <Box
             sx={{
               display: "flex",
+
               alignItems: "center",
-              gap: "12px",
+
+              justifyContent: "space-between",
+
               mb: "12px",
-              mt: "6px",
             }}
           >
-            <Box
-              sx={{
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                bgcolor: "#000048",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <AccountBalanceWalletIcon sx={{ color: "#fff", fontSize: 18 }} />
+            <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <Box
+                sx={{
+                  width: 28,
+
+                  height: 28,
+
+                  borderRadius: "50%",
+
+                  bgcolor: "#000048",
+
+                  display: "flex",
+
+                  alignItems: "center",
+
+                  justifyContent: "center",
+                }}
+              >
+                <AccountBalanceWalletIcon
+                  sx={{ color: "#fff", fontSize: 18 }}
+                />
+              </Box>
+              <Typography
+                sx={{
+                  fontFamily: "Gallix, sans-serif",
+
+                  fontWeight: 500,
+
+                  fontSize: "24px",
+
+                  color: "#000048",
+                }}
+              >
+                Topup - Insufficient Wallet Balance
+              </Typography>
             </Box>
-            <Typography
-              sx={{
-                fontFamily: "Gallix, sans-serif",
-                fontWeight: 500,
-                fontSize: "24px",
-                color: "#000048",
-              }}
-            >
-              Topup - Insufficient Wallet Balance
-            </Typography>
+            <IconButton onClick={() => setBalanceDialogOpen(false)}>
+              <CloseIcon sx={{ color: "#000048" }} />
+            </IconButton>
           </Box>
+          <Divider sx={{ borderColor: "#000048", mb: "18px" }} />
+          <Typography
+            sx={{
+              fontFamily: "Gallix, sans-serif",
 
-          <Divider
-            sx={{ mb: "18px", borderBottomWidth: 2, borderColor: "#000048" }}
-          />
+              color: "#000048",
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              fontSize: "17px",
+
+              mb: 2,
+            }}
+          >
+            Low wallet balance detected. Top up your wallet to keep shopping.
+          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <Typography
               sx={{
                 fontFamily: "Gallix, sans-serif",
-                color: "#000048",
-                fontSize: "17px",
+
+                fontSize: "14px",
+
+                color: "#5C5C5C",
               }}
             >
-              Low wallet balance detected. Top up your wallet to keep shopping.
+              Wallet Balance: ${walletBalance.toFixed(2)}
             </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <Typography
-                sx={{
-                  fontFamily: "Gallix, sans-serif",
-                  fontSize: "14px",
-                  color: "#5C5C5C",
-                }}
-              >
-                Wallet Balance: ${walletBalance.toFixed(2)}
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: "Gallix, sans-serif",
-                  fontSize: "14px",
-                  color: "#000048",
-                }}
-              >
-                Order Total: ${orderTotal.toFixed(2)}
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: "Gallix, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "20px",
-                  color: "#000048",
-                }}
-              >
-                Additional Required: ${additionalRequired}
-              </Typography>
-            </Box>
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+
+                fontSize: "14px",
+
+                color: "#000048",
+              }}
+            >
+              Order Total: ${orderTotal.toFixed(2)}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: "Gallix, sans-serif",
+
+                fontWeight: 600,
+
+                fontSize: "20px",
+
+                color: "#000048",
+              }}
+            >
+              Additional Required: ${additionalRequired}
+            </Typography>
           </Box>
         </DialogContent>
       </Dialog>
@@ -869,52 +1370,89 @@ const ShoppingHandheld = ({
   );
 };
 
-// ... keep styles the same ...
+// Styles
+
 const summaryBoxStyle = {
   width: "194px",
+
   height: "100px",
+
   display: "flex",
+
   flexDirection: "column",
+
   alignItems: "center",
+
   justifyContent: "center",
+
   borderRadius: "4px",
+
   border: "1px solid #EAEAEA",
+
   background: "#FFFFFF",
+
   boxShadow: "0px 4px 4px 0px #F4F4F4",
 };
+
 const summaryLabelStyle = {
   fontFamily: "Gallix, sans-serif",
+
   fontSize: "20px",
+
   color: "#000048",
+
   mb: 0.5,
 };
+
 const summaryValueStyle = {
   fontFamily: "Gallix, sans-serif",
+
   fontWeight: 600,
+
   fontSize: "20px",
+
   color: "#000048",
 };
+
 const outlineButtonStyle = {
   width: "276px",
+
   height: "56px",
+
   borderRadius: "8px",
+
   border: "1px solid #000048",
+
   fontFamily: "Gallix, sans-serif",
+
   fontWeight: 600,
+
   fontSize: "20px",
+
   color: "#000048",
+
   textTransform: "none",
 };
+
 const containedButtonStyle = {
   width: "276px",
+
   height: "56px",
+
   borderRadius: "8px",
+
   bgcolor: "#000048",
+
   fontFamily: "Gallix, sans-serif",
+
   fontWeight: 600,
+
   fontSize: "20px",
+
   color: "#FFFFFF",
+
   textTransform: "none",
+
   "&:hover": { bgcolor: "#000066" },
 };
 
