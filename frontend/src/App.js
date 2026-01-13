@@ -1,88 +1,95 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import WelcomeKiosk from './components/WelcomeKiosk';
-import WalletDisplay from './components/WalletDisplay';
-import ShoppingHandheld from './components/ShoppingHandheld';
-import CartReview from './components/CartReview';
-import PaymentConfirmation from './components/PaymentConfirmation';
-import InstallPrompt from './components/InstallPrompt';
-// REGISTRATION: Uncomment below to enable user registration page
-import UserRegistration from './components/UserRegistration';
-import { disableTestMode, getCart, getCartTotal } from './api';
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import useInactivityTimeout from "./hooks/useInactivityTimeout";
+import { Box, CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+
+import WelcomeKiosk from "./components/WelcomeKiosk";
+import WalletDisplay from "./components/WalletDisplay";
+import ShoppingHandheld from "./components/ShoppingHandheld";
+import PaymentConfirmation from "./components/PaymentConfirmation";
+import InstallPrompt from "./components/InstallPrompt";
+import { disableTestMode, getCart, getCartTotal } from "./api";
+import SessionWarningBanner from "./components/SessionWarningBanner";
+import SessionLocked from "./components/SessionLocked";
 
 function App() {
-  const [currentStep, setCurrentStep] = useState('welcome');
+  const [currentStep, setCurrentStep] = useState("welcome");
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [total, setTotal] = useState(0);
+  const [showWarning, setShowWarning] = useState(false);
+  const [sessionLocked, setSessionLocked] = useState(false);
 
-  // REGISTRATION: Uncomment below to enable registration flow
-  const [showRegistration, setShowRegistration] = useState(false);
+  const resetSession = useCallback(() => {
+    setUser(null);
+    setCart([]);
+    setTotal(0);
+    setCurrentStep("welcome");
+    disableTestMode();
+  }, []);
 
-  // Create theme once and memoize it
+  const timeoutMs = currentStep === "confirmation" ? 30000 : 60000;
+
+  const resetInactivity = useInactivityTimeout(
+    () => {
+      if (currentStep === "confirmation") {
+        resetSession();
+      } else {
+        setSessionLocked(true);
+      }
+    },
+    timeoutMs,
+    !!user
+  );
+
+  useEffect(() => {
+    if (!user) return;
+    let activityTimer;
+    const resetActivity = () => {
+      clearTimeout(activityTimer);
+      setShowWarning(false);
+      activityTimer = setTimeout(() => setShowWarning(true), 10 * 60 * 1000);
+    };
+    const events = ["mousedown", "mousemove", "keypress", "scroll", "touchstart", "click"];
+    events.forEach((e) => document.addEventListener(e, resetActivity, true));
+    resetActivity();
+    return () => {
+      clearTimeout(activityTimer);
+      events.forEach((e) => document.removeEventListener(e, resetActivity, true));
+    };
+  }, [user]);
+
   const theme = useMemo(() => createTheme({
-    palette: {
-      primary: {
-        main: '#000048',
-      },
-      secondary: {
-        main: '#dc004e',
-      },
-    },
-    typography: {
-      fontFamily: 'Gallix, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    },
+    palette: { primary: { main: "#000048" }, secondary: { main: "#dc004e" } },
+    typography: { fontFamily: 'Gallix, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
   }), []);
 
   const handleLogin = useCallback((loggedUser) => {
     setUser(loggedUser);
-    setCurrentStep('wallet');
+    setCurrentStep("shopping"); 
   }, []);
 
   const handleContinueShopping = useCallback(() => {
-    setCurrentStep('shopping');
+    setCurrentStep("shopping");
   }, []);
 
-  const handleEndShopping = useCallback(async () => {
-    // Refresh cart data from database before showing review
+  // UPDATED: Now triggered after PaymentScan is successful inside ShoppingHandheld
+  const handleEndShopping = useCallback(async (authData) => {
     if (user) {
       try {
+        // Update user if authData has new balance
+        if (authData) setUser(prev => ({ ...prev, ...authData }));
+
         const cartResponse = await getCart(user.id);
         const totalResponse = await getCartTotal(user.id);
         setCart(cartResponse.data);
         setTotal(totalResponse.data);
+        
+        // Move directly to final success screen
+        setCurrentStep("confirmation");
       } catch (error) {
-        console.error('Failed to refresh cart for review:', error);
+        console.error("Failed to refresh cart for review:", error);
       }
     }
-    setCurrentStep('review');
-  }, [user]);
-
-  const handlePayment = useCallback(() => {
-    setCurrentStep('confirmation');
-  }, []);
-
-  const handleExit = useCallback(() => {
-    disableTestMode(); // Reset test mode on logout
-    setCurrentStep('welcome');
-    setUser(null);
-    setCart([]);
-    setTotal(0);
-  }, []);
-
-  const handleBackToShopping = useCallback(async () => {
-    // Refresh cart data from database when going back to shopping
-    if (user) {
-      try {
-        const cartResponse = await getCart(user.id);
-        const totalResponse = await getCartTotal(user.id);
-        setCart(cartResponse.data);
-        setTotal(totalResponse.data);
-      } catch (error) {
-        console.error('Failed to refresh cart:', error);
-      }
-    }
-    setCurrentStep('shopping');
   }, [user]);
 
   const updateCart = useCallback((newCart, newTotal) => {
@@ -90,47 +97,27 @@ function App() {
     setTotal(newTotal);
   }, []);
 
-  // REGISTRATION: Uncomment below functions to enable registration flow
-  const handleShowRegistration = useCallback(() => {
-    setShowRegistration(true);
-  }, []);
+  const handleResumeFromLock = useCallback((authData) => {
+    setSessionLocked(false);
+    if (authData && typeof authData === "object") {
+      setUser((prev) => ({ ...(prev || {}), ...authData }));
+    }
+    if (typeof resetInactivity === "function") resetInactivity();
+  }, [resetInactivity]);
 
-  const handleRegistrationBack = useCallback(() => {
-    setShowRegistration(false);
-  }, []);
-
-  const handleRegistrationComplete = useCallback((userData) => {
-    setShowRegistration(false);
-    // Optionally auto-login the user
-    // setUser(userData);
-    // setCurrentStep('wallet');
-  }, []);
-
-  // Memoize container styles to prevent recreation
   const containerStyles = useMemo(() => ({
-    px: { xs: 1, sm: 2, md: 3 },
-    py: { xs: 2, sm: 3, md: 4 },
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    bgcolor: '#f5f5f5'
+    px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 3, md: 4 },
+    minHeight: "100vh", display: "flex", flexDirection: "column",
+    alignItems: "center", justifyContent: "center", bgcolor: "#f5f5f5",
   }), []);
 
   return (
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <div>
-        {/* REGISTRATION: Uncomment below to show registration page */}
-        {showRegistration ? (
-          <UserRegistration 
-            onBack={handleRegistrationBack}
-            onRegistrationComplete={handleRegistrationComplete}
-          />
-        ) : currentStep === 'shopping' || currentStep === 'confirmation' ? (
-          // Full screen for shopping and confirmation
+        {currentStep === "shopping" || currentStep === "confirmation" ? (
           <>
-            {currentStep === 'shopping' && user && (
+            {currentStep === "shopping" && user && (
               <ShoppingHandheld
                 userId={user.id}
                 user={user}
@@ -138,41 +125,30 @@ function App() {
                 total={total}
                 onUpdateCart={updateCart}
                 onEndShopping={handleEndShopping}
+                onLogout={resetSession}
               />
             )}
-            {currentStep === 'confirmation' && user && (
+
+            {currentStep === "confirmation" && user && (
               <PaymentConfirmation
                 user={user}
                 cart={cart}
                 total={total}
-                onExit={handleExit}
+                onExit={resetSession}
               />
             )}
           </>
         ) : (
-          // Centered container for welcome, wallet, and review
-          <Box
-            sx={containerStyles}
-          >
-            {currentStep === 'welcome' && (
-              <WelcomeKiosk onLogin={handleLogin} onRegister={handleShowRegistration} />
-            )}
-            {currentStep === 'wallet' && user && (
-              <WalletDisplay user={user} onContinue={handleContinueShopping} />
-            )}
-            {currentStep === 'review' && user && (
-              <CartReview
-                user={user}
-                cart={cart}
-                total={total}
-                onPayment={handlePayment}
-                onBack={handleBackToShopping}
-              />
+          <Box sx={containerStyles}>
+            {currentStep === "welcome" && <WelcomeKiosk onLogin={handleLogin} />}
+            {currentStep === "wallet" && user && (
+              <WalletDisplay user={user} onContinue={handleContinueShopping} onLogout={resetSession} />
             )}
           </Box>
         )}
 
-        {/* Install Prompt - Shows across all screens */}
+        <SessionWarningBanner show={showWarning} warningMs={300000} onExpire={() => setSessionLocked(true)} />
+        <SessionLocked open={sessionLocked} onResume={handleResumeFromLock} onExit={() => { setSessionLocked(false); resetSession(); }} />
         <InstallPrompt />
       </div>
     </ThemeProvider>

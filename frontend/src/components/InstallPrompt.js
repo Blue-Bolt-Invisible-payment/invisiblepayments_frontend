@@ -30,7 +30,7 @@ const InstallPrompt = () => {
       if (!promptDismissed && !alreadyInstalled) {
         setTimeout(() => {
           setShowPrompt(true);
-        }, 3000); // Show after 3 seconds
+        }, 1000); // Show after 3 seconds
       }
     };
 
