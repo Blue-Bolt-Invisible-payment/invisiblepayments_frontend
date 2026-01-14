@@ -217,7 +217,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
 
                   <Typography
                     sx={{
-                      fontFamily: "Poppins, sans-serif",
+                      fontFamily: "Gallix, sans-serif",
                       fontWeight: 500,
                       fontSize: "24px",
                       color: "#000048",
@@ -276,7 +276,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
                 >
                   <Typography
                     sx={{
-                      fontFamily: "Poppins, sans-serif",
+                      fontFamily: "Gallix, sans-serif",
                       fontWeight: 400,
                       fontSize: "17px",
                       color: "#000048",
@@ -287,7 +287,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
                   </Typography>
                   <Typography
                     sx={{
-                      fontFamily: "Poppins, sans-serif",
+                      fontFamily: "Gallix, sans-serif",
                       fontWeight: 400,
                       fontSize: "15px",
                       color: "#000048",
@@ -300,7 +300,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
 
                 <Typography
                   sx={{
-                    fontFamily: "Poppins, sans-serif",
+                    fontFamily: "Gallix, sans-serif",
                     fontWeight: 600,
                     fontSize: "20px",
                     color: "#000048",

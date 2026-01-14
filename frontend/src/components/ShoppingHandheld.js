@@ -623,6 +623,10 @@ const ShoppingHandheld = ({
 
   onLogout,
 
+  onPaymentSuccessShown,
+
+  onPaymentSuccessHidden,
+
 }) => {
 
   const theme = useTheme();
@@ -745,6 +749,9 @@ const ShoppingHandheld = ({
 
       setShowPaymentSuccess(true);
 
+      // notify parent to suppress session lock and start auto-logout timer
+      if (typeof onPaymentSuccessShown === 'function') onPaymentSuccessShown();
+
     } catch (err) {
 
       setIsProcessing(false);
@@ -772,6 +779,9 @@ const ShoppingHandheld = ({
     setIsProcessing(false);
 
     setPaymentError("");
+
+    // notify parent that payment success dialog is closed
+    if (typeof onPaymentSuccessHidden === 'function') onPaymentSuccessHidden();
 
     onLogout && onLogout();
 
@@ -1729,7 +1739,7 @@ const ShoppingHandheld = ({
 
                 sx={{
 
-                  fontFamily: "Poppins, sans-serif",
+                  fontFamily: "Gallix, sans-serif",
 
                   fontWeight: 500,
 
@@ -1791,7 +1801,7 @@ const ShoppingHandheld = ({
 
                 sx={{
 
-                  fontFamily: "Poppins, sans-serif",
+                  fontFamily: "Gallix, sans-serif",
 
                   fontSize: { xs: "14px", md: "17px" },
 
@@ -1808,7 +1818,7 @@ const ShoppingHandheld = ({
 
                 sx={{
 
-                  fontFamily: "Poppins, sans-serif",
+                  fontFamily: "Gallix, sans-serif",
 
                   fontSize: { xs: "12px", md: "15px" },
 
@@ -1824,7 +1834,7 @@ const ShoppingHandheld = ({
 
               sx={{
 
-                fontFamily: "Poppins, sans-serif",
+                fontFamily: "Gallix, sans-serif",
 
                 fontWeight: 600,
 
@@ -2107,4 +2117,3 @@ const containedButtonStyle = {
 };
 
 export default ShoppingHandheld;
- 
