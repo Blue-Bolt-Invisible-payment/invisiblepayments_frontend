@@ -11,11 +11,7 @@ import {
   List,
  
   Divider,
- 
-  useMediaQuery,
- 
-  useTheme,
- 
+
   Paper,
  
   Alert,
@@ -210,7 +206,7 @@ const EmptyCartView = ({ user, onStartShopping, onLogout }) => {
               bgcolor: "#f2f2f2",
               height:'62px',
               padding:'16px',
-              gap:'16px',
+              // gap:'16px',
              
  
               px: 2,
@@ -522,9 +518,6 @@ const CartItemComponent = React.memo(({ cartItem }) => {
               fontWeight:400,
               color:"#000048",
               fontFamily: "Gallix, sans-serif",
- 
-              fontSize:'15px',
- 
             }}
 >
  
@@ -634,9 +627,9 @@ const ShoppingHandheld = ({
  
 }) => {
  
-  const theme = useTheme();
+  //const theme = useTheme();
  
-  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+  // const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
  
   const [showManualAdd, setShowManualAdd] = useState(false);
  
@@ -652,7 +645,7 @@ const ShoppingHandheld = ({
  
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
  
-  const [paymentData, setPaymentData] = useState(null);
+  const [, setPaymentData] = useState(null);
  
   const [paymentError, setPaymentError] = useState("");
  
@@ -1538,10 +1531,11 @@ const ShoppingHandheld = ({
             sx={{
  
               display: "flex",
+              //  height: "110px",
+
+              gap: { xs: "12px", md: "16px" },
  
-              gap: { xs: "12px", md: "21px" },
- 
-              mb: { xs: "24px", md: "48px" },
+              mb: { xs: "20px", md: "20px" },
  
               justifyContent: "center",
  
@@ -2037,9 +2031,9 @@ const ShoppingHandheld = ({
  
 const summaryBoxStyle = {
  
-  width: { xs: "140px", md: "194px" },
+  width: { xs: "150px", md: "194px" },
  
-  height: { xs: "80px", md: "100px" },
+  height: { xs: "45x", md: "100px" },
  
   display: "flex",
  
