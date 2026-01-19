@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import useInactivityTimeout from "./hooks/useInactivityTimeout";
 import { Box, CssBaseline, ThemeProvider, createTheme } from "@mui/material";
 
@@ -18,8 +18,15 @@ function App() {
   const [total, setTotal] = useState(0);
   const [showWarning, setShowWarning] = useState(false);
   const [sessionLocked, setSessionLocked] = useState(false);
+  const confirmationTimerRef = useRef(null);
+  const suppressLockRef = useRef(false); // suppress session lock while showing confirmation or local success
 
   const resetSession = useCallback(() => {
+    if (confirmationTimerRef.current) {
+      clearTimeout(confirmationTimerRef.current);
+      confirmationTimerRef.current = null;
+    }
+    suppressLockRef.current = false;
     setUser(null);
     setCart([]);
     setTotal(0);
@@ -34,11 +41,12 @@ function App() {
       if (currentStep === "confirmation") {
         resetSession();
       } else {
-        setSessionLocked(true);
+        if (!suppressLockRef.current) setSessionLocked(true);
       }
     },
     timeoutMs,
-    !!user
+    // disable the inactivity hook while on confirmation screen so it cannot trigger the session lock there
+    !!user && currentStep !== "confirmation"
   );
 
   useEffect(() => {
@@ -74,6 +82,8 @@ function App() {
 
   // UPDATED: Now triggered after PaymentScan is successful inside ShoppingHandheld
   const handleEndShopping = useCallback(async (authData) => {
+    // suppress session lock while we transition to confirmation
+    suppressLockRef.current = true;
     if (user) {
       try {
         // Update user if authData has new balance
@@ -83,14 +93,26 @@ function App() {
         const totalResponse = await getCartTotal(user.id);
         setCart(cartResponse.data);
         setTotal(totalResponse.data);
-        
+
+        // ensure any warning/lock is cleared and start 30s redirect to welcome
+        setShowWarning(false);
+        setSessionLocked(false);
+
         // Move directly to final success screen
         setCurrentStep("confirmation");
+
+        // start 30s timer to return to welcome/login
+        if (confirmationTimerRef.current) {
+          clearTimeout(confirmationTimerRef.current);
+        }
+        confirmationTimerRef.current = setTimeout(() => {
+          resetSession();
+        }, 30000);
       } catch (error) {
         console.error("Failed to refresh cart for review:", error);
       }
     }
-  }, [user]);
+  }, [user, resetSession]);
 
   const updateCart = useCallback((newCart, newTotal) => {
     setCart(newCart);
@@ -105,11 +127,42 @@ function App() {
     if (typeof resetInactivity === "function") resetInactivity();
   }, [resetInactivity]);
 
+  const handlePaymentSuccessShown = useCallback(() => {
+    // suppress any lock or warning while payment success is visible
+    suppressLockRef.current = true;
+    setShowWarning(false);
+    setSessionLocked(false);
+
+    // start 30s auto-logout timer (clear existing first)
+    if (confirmationTimerRef.current) {
+      clearTimeout(confirmationTimerRef.current);
+    }
+    confirmationTimerRef.current = setTimeout(() => {
+      resetSession();
+    }, 30000);
+  }, [resetSession]);
+
+  const handlePaymentSuccessHidden = useCallback(() => {
+    // clear the auto-logout timer and allow session lock again
+    if (confirmationTimerRef.current) {
+      clearTimeout(confirmationTimerRef.current);
+      confirmationTimerRef.current = null;
+    }
+    suppressLockRef.current = false;
+  }, []);
+
   const containerStyles = useMemo(() => ({
     px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 3, md: 4 },
     minHeight: "100vh", display: "flex", flexDirection: "column",
     alignItems: "center", justifyContent: "center", bgcolor: "#f5f5f5",
   }), []);
+
+  useEffect(() => {
+    if (currentStep !== "confirmation" && confirmationTimerRef.current) {
+      clearTimeout(confirmationTimerRef.current);
+      confirmationTimerRef.current = null;
+    }
+  }, [currentStep]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -126,6 +179,8 @@ function App() {
                 onUpdateCart={updateCart}
                 onEndShopping={handleEndShopping}
                 onLogout={resetSession}
+                onPaymentSuccessShown={handlePaymentSuccessShown}
+                onPaymentSuccessHidden={handlePaymentSuccessHidden}
               />
             )}
 
@@ -147,8 +202,13 @@ function App() {
           </Box>
         )}
 
-        <SessionWarningBanner show={showWarning} warningMs={300000} onExpire={() => setSessionLocked(true)} />
-        <SessionLocked open={sessionLocked} onResume={handleResumeFromLock} onExit={() => { setSessionLocked(false); resetSession(); }} />
+        {/* Only show warning banner and lock on screens other than welcome and confirmation */}
+        {currentStep !== "confirmation" && currentStep !== "welcome" && (
+          <SessionWarningBanner show={showWarning} warningMs={30000} onExpire={() => { if (!suppressLockRef.current) setSessionLocked(true); }} />
+        )}
+        {currentStep !== "confirmation" && currentStep !== "welcome" && (
+          <SessionLocked open={sessionLocked} onResume={handleResumeFromLock} onExit={() => { setSessionLocked(false); resetSession(); }} />
+        )}
         <InstallPrompt />
       </div>
     </ThemeProvider>

@@ -7,7 +7,7 @@ import { Box, Typography } from '@mui/material';
  * @param {number} warningMs - Countdown duration (default: 5 minutes)
  * @param {function} onExpire - Callback when countdown reaches zero
  */
-const SessionWarningBanner = ({ show, warningMs = 300000, onExpire }) => {
+const SessionWarningBanner = ({ show, warningMs = 30000, onExpire }) => {
   const [remaining, setRemaining] = useState(warningMs);
 
   useEffect(() => {
