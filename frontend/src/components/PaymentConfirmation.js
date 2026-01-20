@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import {
-  Button,
+  // Button,
   Typography,
   Box,
-  Alert,
+  // Alert,
   CircularProgress,
   Paper,
   IconButton,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
-import CloseIcon from "@mui/icons-material/Close";
-import MarkEmailReadIcon from "@mui/icons-material/MarkEmailRead";
+// import CloseIcon from "@mui/icons-material/Close";
+// import MarkEmailReadIcon from "@mui/icons-material/MarkEmailRead";
 import { proceedToPay } from "../api";
 import useInactivityTimeout from "../hooks/useInactivityTimeout";
 import PaymentFailed from "./PaymentFailed";
@@ -19,7 +19,8 @@ import PaymentFailed from "./PaymentFailed";
 const PaymentConfirmation = ({ user, total, onExit }) => {
   const [processing, setProcessing] = useState(true);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [paymentData, setPaymentData] = useState(null);
+  const [setPaymentData] = useState(null);
+  // const [paymentData, setPaymentData] = useState(null);
   const [error, setError] = useState("");
 
   // Dev: allow testing payment failure by adding ?simulateFail=1 to the URL
@@ -29,12 +30,12 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
       : false;
 
   // Masking
-  const maskEmail = (email) =>
-    email ? email.replace(/^(..)(.*)(@.*)$/, "$1***$3") : "your email";
-  const maskPhone = (phone) =>
-    phone ? `******${phone.slice(-4)}` : "your mobile";
+  // const maskEmail = (email) =>
+  //   email ? email.replace(/^(..)(.*)(@.*)$/, "$1***$3") : "your email";
+  // const maskPhone = (phone) =>
+  //   phone ? `******${phone.slice(-4)}` : "your mobile";
 
-  const totalAmount = typeof total === "object" ? total.total || 0 : total || 0;
+  // const totalAmount = typeof total === "object" ? total.total || 0 : total || 0;
 
   // Extracted handler so it can be reused for initial call and retry
   const handlePayment = async () => {
@@ -83,12 +84,12 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
   // Start a 30s inactivity timeout when the success popup is visible
   useInactivityTimeout(onExit, 30000, paymentSuccess && !processing);
 
-  const displayEmail = maskEmail(paymentData?.recipientEmail || user?.email);
-  const displayPhone = maskPhone(paymentData?.recipientPhone || user?.phone);
-  const resolvedAmount =
-    paymentData?.amount != null
-      ? Number(paymentData.amount)
-      : Number(totalAmount);
+  // const displayEmail = maskEmail(paymentData?.recipientEmail || user?.email);
+  // const displayPhone = maskPhone(paymentData?.recipientPhone || user?.phone);
+  // const resolvedAmount =
+  //   paymentData?.amount != null
+  //     ? Number(paymentData.amount)
+  //     : Number(totalAmount);
 
   return (
     <Box
