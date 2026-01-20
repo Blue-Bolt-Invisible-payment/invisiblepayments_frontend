@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, IconButton, Paper, Typography, Slide } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import GetAppIcon from '@mui/icons-material/GetApp';
-import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
+// import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 
 /**
  * InstallPrompt Component

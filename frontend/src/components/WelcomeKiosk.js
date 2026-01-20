@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-
+import { Button} from '@mui/material';
+import { enableTestMode } from '../api';
 import {
 
   // Button,
@@ -538,7 +539,55 @@ width: '66.73782348632812px',
             Scan your fingerprint to start Shopping
 </Box>
 </Box>
- 
+  {/* testing code , later it should be removed */}
+  {/*        TESTING MODE SECTION - START       */}
+        {/* Comment out this entire block to remove test mode */}
+        <Box sx={{ mt: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, borderTop: '1px dashed #ccc' }}>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              fontFamily: 'Gallix, sans-serif',
+              color: '#dc004e',
+              fontSize: { xs: '0.75rem', sm: '0.85rem' },
+              display: 'block',
+              mb: { xs: 1.5, sm: 2 }
+            }}
+          >
+             TESTING MODE (only for testing mode)
+          </Typography>
+          <Button 
+            variant="outlined" 
+            onClick={() => {
+              // Enable test mode to use mock data
+              enableTestMode();
+              // Mock Farheen user data for testing             
+              onLogin({
+                id: 34,
+                userId: 34,
+                name: 'JOHN',                
+                email: 'vinodhg278@gmail.com',                
+                walletBalance: 409.18,
+                biometricEnabled: true,
+                status: 'ACTIVE'
+              });
+            }}
+            fullWidth
+            sx={{ 
+              py: { xs: 1.2, sm: 1.5 },
+              fontSize: { xs: '0.9rem', sm: '1rem' },
+              fontFamily: 'Gallix, sans-serif',
+              fontWeight: 'bold',
+              borderColor: '#dc004e',
+              color: '#dc004e',
+              '&:hover': {
+                borderColor: '#dc004e',
+                bgcolor: 'rgba(220, 0, 78, 0.04)'
+              }
+            }}
+          >
+          TEST LOGIN AS JOHN (BYPASS FINGERPRINT)   
+          </Button>
+        </Box>
         {/* Error Message */}
 
         {error && (

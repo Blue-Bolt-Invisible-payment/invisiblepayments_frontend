@@ -78,7 +78,10 @@ const checkExternalScanner = async () => {
     
     // For now, return false - will be implemented in backend
     return false;
-  } catch (error) {
+
+  } 
+  // eslint-disable-next-line
+  catch (error) {
     return false;
   }
 };
