@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Box, CircularProgress, IconButton } from '@mui/material';
-// import CloseIcon from '@mui/icons-material/Close';
 import { authenticateUser } from '../api';
-import { 
-  detectBiometricCapabilities, 
+import {
+  detectBiometricCapabilities,
   captureFingerprintUniversal,
-  getBiometricStatus 
+  getBiometricStatus
 } from '../utils/biometricUtils';
-
+ 
 const PaymentScan = ({ onAuthorized, onClose }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [deviceStatus, setDeviceStatus] = useState({ available: false, message: 'Detecting...', deviceType: 'None' });
-
+ 
   useEffect(() => {
     const detectDevice = async () => {
       try {
@@ -28,10 +27,10 @@ const PaymentScan = ({ onAuthorized, onClose }) => {
         });
       }
     };
-
+ 
     detectDevice();
   }, []);
-
+ 
   const handleFingerprintScan = async () => {
     setError('');
     try {
@@ -41,10 +40,10 @@ const PaymentScan = ({ onAuthorized, onClose }) => {
         setError('No fingerprint sensor detected. Please use an alternate payment method.');
         return;
       }
-
+ 
       const fingerprintData = await captureFingerprintUniversal();
       const response = await authenticateUser(fingerprintData);
-
+ 
       if (response.data && response.data.enabled) {
         onAuthorized && onAuthorized(response.data);
       } else {
@@ -61,16 +60,17 @@ const PaymentScan = ({ onAuthorized, onClose }) => {
       else setError(err.message || 'Payment authorization failed. Please try another payment method.');
     }
   };
-
+ 
   return (
     <Box
       sx={{
         position: 'fixed',
-        top: 0, 
+        top: 0,
         left: 0,
         right: 0,
         bottom: 0,
         zIndex: 1400,
+        padding: '20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -79,23 +79,21 @@ const PaymentScan = ({ onAuthorized, onClose }) => {
     >
       <Box
         sx={{
-          width: 766,
-          height: 324,
+          width: '100%',
+          maxWidth: 766,
+          minHeight: 324,
           bgcolor: '#FFFFFF',
           borderRadius: '8px',
-          pt: '12px',
-          pr: '24px',
-          pb: '24px',
-          pl: '24px',
+          p: { xs: 2, md: 3 },
           boxShadow: 6,
           position: 'relative',
           overflow: 'hidden'
         }}
       >
         {/* Header row */}
-        <Box sx={{ display: 'flex', alignItems: 'center', width: 718, height: 40, gap: '12px' }}>
-          <Box sx={{ width: 40, height: 40, bgcolor: 'transparent', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="fingerprint circle with strokes">
+        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: 1.5, gap: '12px' }}>
+          <Box sx={{ width: 40, height: 40, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img">
               <defs>
                 <radialGradient id="paint0_radial_214_765" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(11.5 12) rotate(90) scale(12 11.5)">
                   <stop offset="0.173077" stopColor="white" />
@@ -107,40 +105,55 @@ const PaymentScan = ({ onAuthorized, onClose }) => {
               </g>
             </svg>
           </Box>
-
-          {/* Title text */}
-          <Box sx={{ display: 'flex', alignItems: 'center', width: 591, height: 36 }}>
-            <Typography sx={{ fontFamily: 'Gallix, sans-serif', fontWeight: 500, fontSize: '24px', lineHeight: '36px', letterSpacing: '-3%', color: '#000048' }}>
+ 
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography sx={{
+                fontFamily: 'Gallix, sans-serif',
+                fontWeight: 500,
+                fontSize: { xs: '20px', md: '24px' },
+                lineHeight: '1.2',
+                letterSpacing: '-3%',
+                color: '#000048'
+              }}>
               Payment Authentication
             </Typography>
           </Box>
-
-          {/* close icon */}
-          <Box sx={{ marginLeft: 'auto' }}>
-            <IconButton onClick={() => onClose && onClose()} sx={{ width: 18, height: 18, color: '#000048' }} size="small" aria-label="close">
-              {/* <CloseIcon sx={{ fontSize: 18 }} /> */}
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M11.113 8.99872L17.5567 2.56902C17.8389 2.2868 17.9974 1.90402 17.9974 1.5049C17.9974 1.10577 17.8389 0.722997 17.5567 0.440774C17.2745 0.158551 16.8918 0 16.4928 0C16.0937 0 15.711 0.158551 15.4288 0.440774L9 6.88546L2.57121 0.440774C2.28903 0.158551 1.90631 -2.9737e-09 1.50724 0C1.10817 2.9737e-09 0.725452 0.158551 0.443269 0.440774C0.161086 0.722997 0.00255743 1.10577 0.00255743 1.5049C0.00255743 1.90402 0.161086 2.2868 0.443269 2.56902L6.88704 8.99872L0.443269 15.4284C0.302812 15.5678 0.191329 15.7335 0.115249 15.9162C0.0391699 16.0988 0 16.2947 0 16.4925C0 16.6904 0.0391699 16.8863 0.115249 17.0689C0.191329 17.2516 0.302812 17.4173 0.443269 17.5567C0.582579 17.6971 0.74832 17.8086 0.930933 17.8847C1.11355 17.9608 1.30941 18 1.50724 18C1.70507 18 1.90094 17.9608 2.08355 17.8847C2.26616 17.8086 2.4319 17.6971 2.57121 17.5567L9 11.112L15.4288 17.5567C15.5681 17.6971 15.7338 17.8086 15.9165 17.8847C16.0991 17.9608 16.2949 18 16.4928 18C16.6906 18 16.8865 17.9608 17.0691 17.8847C17.2517 17.8086 17.4174 17.6971 17.5567 17.5567C17.6972 17.4173 17.8087 17.2516 17.8848 17.0689C17.9608 16.8863 18 16.6904 18 16.4925C18 16.2947 17.9608 16.0988 17.8848 15.9162C17.8087 15.7335 17.6972 15.5678 17.5567 15.4284L11.113 8.99872Z" fill="#000048"/>
-</svg>
-            </IconButton>
-          </Box>
+ 
+          <IconButton onClick={() => onClose && onClose()} sx={{ width: 32, height: 32, color: '#000048' }} size="small">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11.113 8.99872L17.5567 2.56902C17.8389 2.2868 17.9974 1.90402 17.9974 1.5049C17.9974 1.10577 17.8389 0.722997 17.5567 0.440774C17.2745 0.158551 16.8918 0 16.4928 0C16.0937 0 15.711 0.158551 15.4288 0.440774L9 6.88546L2.57121 0.440774C2.28903 0.158551 1.90631 -2.9737e-09 1.50724 0C1.10817 2.9737e-09 0.725452 0.158551 0.443269 0.440774C0.161086 0.722997 0.00255743 1.10577 0.00255743 1.5049C0.00255743 1.90402 0.161086 2.2868 0.443269 2.56902L6.88704 8.99872L0.443269 15.4284C0.302812 15.5678 0.191329 15.7335 0.115249 15.9162C0.0391699 16.0988 0 16.2947 0 16.4925C0 16.6904 0.0391699 16.8863 0.115249 17.0689C0.191329 17.2516 0.302812 17.4173 0.443269 17.5567C0.582579 17.6971 0.74832 17.8086 0.930933 17.8847C1.11355 17.9608 1.30941 18 1.50724 18C1.70507 18 1.90094 17.9608 2.08355 17.8847C2.26616 17.8086 2.4319 17.6971 2.57121 17.5567L9 11.112L15.4288 17.5567C15.5681 17.6971 15.7338 17.8086 15.9165 17.8847C16.0991 17.9608 16.2949 18 16.4928 18C16.6906 18 16.8865 17.9608 17.0691 17.8847C17.2517 17.8086 17.4174 17.6971 17.5567 17.5567C17.6972 17.4173 17.8087 17.2516 17.8848 17.0689C17.9608 16.8863 18 16.6904 18 16.4925C18 16.2947 17.9608 16.0988 17.8848 15.9162C17.8087 15.7335 17.6972 15.5678 17.5567 15.4284L11.113 8.99872Z" fill="#000048"/>
+            </svg>
+          </IconButton>
         </Box>
-
+ 
         {/* Divider line */}
-        <Box sx={{ width: 718, height: '1px', bgcolor: '#000048', mt: '12px', border: '1px solid #000048' }} />
-
-        {/* Content area below the line */}
-        <Box sx={{ width: 702, height: 230, mt: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '64px' }}>
-          
+        <Box sx={{ width: '100%', height: '1.5px', bgcolor: '#000048' }} />
+ 
+        {/* Updated Content area with tighter spacing */}
+        <Box sx={{
+            width: '100%',
+            mt: { xs: 3, md: 4 }, // Reduced top margin from line
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: { xs: 3, md: 5 } // Reduced gap between text and fingerprint
+          }}>
+         
           {/* instruction text */}
-          <Box sx={{ width: 702, height: 26, mt: '12px' }}>
-            <Typography sx={{ fontFamily: 'Gallix, sans-serif', fontWeight: 400, fontSize: '17px', lineHeight: '26px', letterSpacing: '-3%', color: '#000048' }}>
+          <Box sx={{ width: '100%', textAlign: 'center' }}>
+            <Typography sx={{
+                fontFamily: 'Gallix, sans-serif',
+                fontWeight: 400,
+                fontSize: { xs: '15px', md: '18px' },
+                lineHeight: '1.4',
+                color: error ? 'error.main' : '#000048'
+              }}>
               {error ? error : "Place your finger to authenticate and complete payment instantly."}
             </Typography>
           </Box>
-
+ 
           {/* fingerprint animation area */}
-          <Box sx={{ width: 64, height: 92, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
             <Box
               onClick={!loading ? handleFingerprintScan : undefined}
               sx={{
@@ -153,16 +166,18 @@ const PaymentScan = ({ onAuthorized, onClose }) => {
                 cursor: loading ? 'default' : 'pointer'
               }}
             >
-              {/* animated rings */}
               <Box sx={{ position: 'absolute', width: 64, height: 92, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Box sx={{ position: 'absolute', width: 64, height: 64, borderRadius: '50%', boxSizing: 'border-box', border: '3px solid rgba(38,239,233,0.18)', animation: 'ripple 2000ms infinite' }} />
-                <Box sx={{ position: 'absolute', width: 48, height: 48, borderRadius: '50%', boxSizing: 'border-box', border: '2px solid rgba(43,180,215,0.22)', animation: 'ripple 1800ms infinite', animationDelay: '220ms' }} />
+                <Box sx={{
+                  position: 'absolute', width: 64, height: 64, borderRadius: '50%',
+                  boxSizing: 'border-box', border: '3px solid rgba(38,239,233,0.18)',
+                  animation: 'ripple 2000ms infinite'
+                }} />
               </Box>
-
+ 
               {loading ? (
                 <CircularProgress sx={{ color: '#06a7cf' }} />
               ) : (
-                <svg width="64" height="92" viewBox="0 0 64 92" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="animated fingerprint">
+                <svg width="64" height="92" viewBox="0 0 64 92" xmlns="http://www.w3.org/2000/svg" role="img">
                   <defs>
                     <radialGradient id="paint0_radial_214_771" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 46) rotate(90) scale(46 32)">
                       <stop offset="0" stopColor="#000048" />
@@ -180,5 +195,5 @@ const PaymentScan = ({ onAuthorized, onClose }) => {
     </Box>
   );
 };
-
+ 
 export default PaymentScan;

@@ -539,7 +539,7 @@ width: '66.73782348632812px',
             Scan your fingerprint to start Shopping
 </Box>
 </Box>
-  {/* testing code , later it should be removed */}
+{/* testing code , later it should be removed */}
   {/*        TESTING MODE SECTION - START       */}
         {/* Comment out this entire block to remove test mode */}
         <Box sx={{ mt: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, borderTop: '1px dashed #ccc' }}>

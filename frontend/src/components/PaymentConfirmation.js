@@ -15,35 +15,35 @@ import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import { proceedToPay } from "../api";
 import useInactivityTimeout from "../hooks/useInactivityTimeout";
 import PaymentFailed from "./PaymentFailed";
-
+ 
 const PaymentConfirmation = ({ user, total, onExit }) => {
   const [processing, setProcessing] = useState(true);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   //const [paymentData, setPaymentData] = useState(null);
   const [setPaymentData] = useState(null);
   const [error, setError] = useState("");
-
+ 
   // Dev: allow testing payment failure by adding ?simulateFail=1 to the URL
   const simulateFailParam =
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("simulateFail") === "1"
       : false;
-
+ 
   // Masking
   // const maskEmail = (email) =>
   //   email ? email.replace(/^(..)(.*)(@.*)$/, "$1***$3") : "your email";
   // const maskPhone = (phone) =>
   //   phone ? `******${phone.slice(-4)}` : "your mobile";
-
+ 
   // const totalAmount = typeof total === "object" ? total.total || 0 : total || 0;
-
+ 
   // Extracted handler so it can be reused for initial call and retry
   const handlePayment = async () => {
     try {
       setError("");
       setProcessing(true);
       setPaymentSuccess(false);
-
+ 
       // If simulateFail=1 and not yet used, simulate a failure for testing
       try {
         const used =
@@ -60,7 +60,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
         // If simulation triggered, surface as normal error below
         throw simErr;
       }
-
+ 
       await new Promise((resolve) => setTimeout(resolve, 2000));
       const response = await proceedToPay(user.id);
       setPaymentData(response.data);
@@ -75,22 +75,22 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
       setProcessing(false);
     }
   };
-
+ 
   useEffect(() => {
     handlePayment();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
-
+ 
   // Start a 30s inactivity timeout when the success popup is visible
   useInactivityTimeout(onExit, 30000, paymentSuccess && !processing);
-
+ 
   // const displayEmail = maskEmail(paymentData?.recipientEmail || user?.email);
   // const displayPhone = maskPhone(paymentData?.recipientPhone || user?.phone);
   // const resolvedAmount =
   //   paymentData?.amount != null
   //     ? Number(paymentData.amount)
   //     : Number(totalAmount);
-
+ 
   return (
     <Box
       sx={{
@@ -148,7 +148,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
             </Box>
           </>
         )}
-
+ 
         {/* Render the Figma-styled popup as an overlay on the same page */}
         {paymentSuccess && !processing && (
           <>
@@ -161,24 +161,25 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
                 zIndex: 1300,
               }}
             />
-
+ 
             {/* Popup box centered horizontally within the viewport (fixed) */}
             <Box
               role="dialog"
               aria-modal="true"
               sx={{
                 position: "fixed",
-                top: "178.49px",
+                top: "50%",
                 left: "50%",
-                transform: "translateX(-50%)",
-                width: "766px",
-                height: "351.011444px",
+                transform: "translate(-50%, -50%)",
+                width: "90vw",
+                maxWidth: "420px",
+                minWidth: "250px",
                 bgcolor: "#FFFFFF",
                 borderRadius: "8px",
                 boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
                 border: "1px solid #000048",
                 zIndex: 1400,
-                p: "12px 24px 42px 24px",
+                p: { xs: "16px", sm: "24px 24px 42px 24px" },
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "flex-start",
@@ -215,7 +216,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
                   >
                     <ThumbUpAltIcon sx={{ color: "#FFFFFF", fontSize: 20 }} />
                   </Box>
-
+ 
                   <Typography
                     sx={{
                       fontFamily: "Gallix, sans-serif",
@@ -227,7 +228,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
                     Payment Successful
                   </Typography>
                 </Box>
-
+ 
                 <IconButton
                   onClick={onExit}
                   sx={{ width: 40, height: 40 }}
@@ -239,12 +240,12 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
 </svg>
                 </IconButton>
               </Box>
-
+ 
               {/* Separator */}
               <Box
                 sx={{ width: "100%", borderBottom: "1px solid #000048", mt: 1 }}
               />
-
+ 
               {/* Content area: centered check, messages and thank you text */}
               <Box
                 sx={{
@@ -269,7 +270,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
                 >
                   <CheckCircleIcon sx={{ color: "#FFFFFF", fontSize: 49 }} />
                 </Box>
-
+ 
                 <Box
                   sx={{
                     display: "flex",
@@ -301,7 +302,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
                     A receipt has been sent to your linked email-id.
                   </Typography>
                 </Box>
-
+ 
                 <Typography
                   sx={{
                     fontFamily: "Gallix, sans-serif",
@@ -317,7 +318,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
             </Box>
           </>
         )}
-
+ 
         {error && !processing && (
           <PaymentFailed
             open={Boolean(error)}
@@ -330,5 +331,7 @@ const PaymentConfirmation = ({ user, total, onExit }) => {
     </Box>
   );
 };
-
+ 
 export default PaymentConfirmation;
+ 
+ 

@@ -1,21 +1,22 @@
 import React from 'react';
 import { Box, Typography, IconButton, Button, Modal } from '@mui/material';
-
+ 
 const PaymentFailed = ({ open, onClose, onRetry }) => {
   return (
     <Modal open={open} onClose={onClose} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Box
         sx={{
-          width: '766px',
-          height: '415.01px',
+          width: '90vw',
+          maxWidth: '420px',
+          minWidth: '250px',
+          minHeight: '220px',
           bgcolor: '#FFFFFF',
           borderRadius: '8px',
           boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
           display: 'flex',
-          radius:'8px',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '12px 24px 60px 24px', // padding-top: 12, left/right: 24, bottom: 60
+          p: { xs: '16px', sm: '24px 24px 60px 24px' },
           position: 'relative',
           gap: '32px',
           outline: 'none',
@@ -24,12 +25,12 @@ const PaymentFailed = ({ open, onClose, onRetry }) => {
         {/* --- Header Section --- */}
         <Box
           sx={{
-            width: '718px',
-            height: '52px',
+            width: '100%',
+            minHeight: 52,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid #000048', // The x vector background line
+            borderBottom: '1px solid #000048',
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -59,9 +60,9 @@ const PaymentFailed = ({ open, onClose, onRetry }) => {
             </svg>
           </IconButton>
         </Box>
-
+ 
         {/* --- Red Cross Icon Section --- */}
-        <Box sx={{ width: '82px', height: '82px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ width: 82, height: 82, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="82" height="82" viewBox="0 0 82 82" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="41" cy="41" r="41" fill="#F60017" />
             {/* White X inside Red Circle */}
@@ -69,20 +70,20 @@ const PaymentFailed = ({ open, onClose, onRetry }) => {
             <path d="M31 31L51 51" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </Box>
-
+ 
         {/* --- Text Content Section --- */}
-        <Box sx={{ width: '702px', display: 'flex', flexDirection: 'column', gap: '30px', alignItems: 'center' }}>
+        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
           <Typography
             sx={{
               fontFamily: "Gallix, sans-serif",
               fontWeight: 400,
               fontSize: '17px',
-              lineHeight: '100%',
+              lineHeight: '26px',
               letterSpacing: '-3%',
               textAlign: 'center',
               color: '#000048',
-              width: '702px',
-              height: '26px',
+              width: '100%',
+              minHeight: '26px',
             }}
           >
             Your payment could not be processed.
@@ -92,18 +93,18 @@ const PaymentFailed = ({ open, onClose, onRetry }) => {
               fontFamily: "Gallix, sans-serif",
               fontWeight: 400,
               fontSize: '17px',
-              lineHeight: '100%',
+              lineHeight: '26px',
               letterSpacing: '-3%',
               textAlign: 'center',
               color: '#000048',
-              width: '702px',
-              height: '26px',
+              width: '100%',
+              minHeight: '26px',
             }}
           >
             Please try again or use a different payment method.
           </Typography>
         </Box>
-
+ 
         {/* --- Retry Button Section --- */}
         <Button
           onClick={onRetry}
@@ -135,5 +136,5 @@ const PaymentFailed = ({ open, onClose, onRetry }) => {
     </Modal>
   );
 };
-
+ 
 export default PaymentFailed;

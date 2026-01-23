@@ -21,6 +21,7 @@ const AppHeader = ({ user, showWallet }) => {
     localStorage.clear();
     sessionStorage.clear();
     handleClose();
+
     window.location.href = "/login";
   };
 
