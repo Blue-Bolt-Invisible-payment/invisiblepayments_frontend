@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://smartpaybackend-ebc2fefrf0bbaahq.southindia-01.azurewebsites.net/api';
+const API_BASE_URL = 'http://localhost:8080/api';
 
 // ====================================
 // 🧪 TESTING MODE CONFIGURATION
@@ -161,7 +161,7 @@ export const getWalletBalance = (userId) => {
  * Returns: { userId, name, email, walletBalance, biometricEnabled, status }
  */
 export const registerNewUser = (userData) => {
-    if (MOCK_MODE && TEST_USER_MODE) {
+    if (MOCK_MODE || TEST_USER_MODE) {
         // Mock successful registration
         return Promise.resolve({
             data: {
@@ -235,7 +235,7 @@ export const searchProducts = (query) =>
  * Returns: Array of cart items with product details and quantities
  */
 export const getCart = (userId) => {
-    if (MOCK_MODE && TEST_USER_MODE) {
+    if (MOCK_MODE || TEST_USER_MODE) {
         return Promise.resolve({ data: mockCartData });
     }
     return axios.get(`${API_BASE_URL}/cart/${userId}`);
@@ -246,7 +246,7 @@ export const getCart = (userId) => {
  * Returns: { subtotal, discount, tax, total, itemCount }
  */
 export const getCartTotal = (userId) => {
-    if (MOCK_MODE && TEST_USER_MODE) {
+    if (MOCK_MODE || TEST_USER_MODE) {
         const total = mockCartData.reduce((sum, item) => sum + (item.item.price * item.quantity), 0);
         return Promise.resolve({ data: total });
     }
@@ -262,7 +262,7 @@ export const getCartTotal = (userId) => {
  * Throws: "Insufficient stock" if requested quantity exceeds available stock
  */
 export const updateCartItem = (userId, cartItemId, quantity) => {
-    if (MOCK_MODE && TEST_USER_MODE) {
+    if (MOCK_MODE || TEST_USER_MODE) {
         const item = mockCartData.find(i => i.id === cartItemId);
         if (item) {
             item.quantity = quantity;
@@ -277,7 +277,7 @@ export const updateCartItem = (userId, cartItemId, quantity) => {
  * Backend: Delete cart item and recalculate total
  */
 export const removeCartItem = (userId, cartItemId) => {
-    if (MOCK_MODE && TEST_USER_MODE) {
+    if (MOCK_MODE || TEST_USER_MODE) {
         mockCartData = mockCartData.filter(i => i.id !== cartItemId);
         return Promise.resolve({ data: { success: true } });
     }
@@ -310,7 +310,7 @@ export const clearCart = (userId) =>
  * Throws: "Insufficient wallet balance" or "Cart is empty"
  */
 export const proceedToPay = (userId) => {
-    if (MOCK_MODE && TEST_USER_MODE) {
+    if (MOCK_MODE || TEST_USER_MODE) {
         const total = mockCartData.reduce((sum, item) => sum + (item.item.price * item.quantity), 0);
         mockCartData = []; // Clear cart after payment
         return Promise.resolve({

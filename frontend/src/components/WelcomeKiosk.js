@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button} from '@mui/material';
-import { enableTestMode } from '../api';
+// import { Button} from '@mui/material';
+// import { enableTestMode } from '../api';
 import {
 
   // Button,
@@ -542,7 +542,7 @@ width: '66.73782348632812px',
 {/* testing code , later it should be removed */}
   {/*        TESTING MODE SECTION - START       */}
         {/* Comment out this entire block to remove test mode */}
-        <Box sx={{ mt: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, borderTop: '1px dashed #ccc' }}>
+        {/* <Box sx={{ mt: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, borderTop: '1px dashed #ccc' }}>
           <Typography 
             variant="caption" 
             sx={{ 
@@ -558,9 +558,9 @@ width: '66.73782348632812px',
           <Button 
             variant="outlined" 
             onClick={() => {
-              // Enable test mode to use mock data
+            
               enableTestMode();
-              // Mock Farheen user data for testing             
+                      
               onLogin({
                 id: 34,
                 userId: 34,
@@ -587,7 +587,7 @@ width: '66.73782348632812px',
           >
           TEST LOGIN AS JOHN (BYPASS FINGERPRINT)   
           </Button>
-        </Box>
+        </Box> */}
         {/* Error Message */}
 
         {error && (
