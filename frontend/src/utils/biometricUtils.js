@@ -22,6 +22,7 @@ let biometricCapabilities = {
   externalScanner: false
 };
 
+
 /**
  * Detect available biometric authentication methods
  */
@@ -168,7 +169,8 @@ const captureViaWebAuthn = async () => {
     // Fetch all registered credentials from backend
     let allowCredentials = [];
     try {
-      const response = await fetch('https://smartpaybackend-ebc2fefrf0bbaahq.southindia-01.azurewebsites.net/api/auth/credentials');
+      const response = await fetch(process.env.REACT_APP_API_BASE ||
+  `${window.location.origin}/api/auth/credentials`);
       const credentialIds = await response.json();
       
       // Convert credential IDs to the format WebAuthn expects

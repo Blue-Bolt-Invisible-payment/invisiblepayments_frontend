@@ -132,7 +132,7 @@ const PaymentScan = ({ onAuthorized, onClose }) => {
         {/* Updated Content area with tighter spacing */}
         <Box sx={{
             width: '100%',
-            mt: { xs: 3, md: 4 }, // Reduced top margin from line
+            mt: { xs: 3, md: 2 }, // Reduced top margin from line
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -140,12 +140,12 @@ const PaymentScan = ({ onAuthorized, onClose }) => {
           }}>
          
           {/* instruction text */}
-          <Box sx={{ width: '100%', textAlign: 'center' }}>
+          <Box sx={{ width: '100%', textAlign: 'left' }}>
             <Typography sx={{
                 fontFamily: 'Gallix, sans-serif',
                 fontWeight: 400,
                 fontSize: { xs: '15px', md: '18px' },
-                lineHeight: '1.4',
+                lineHeight: '1',
                 color: error ? 'error.main' : '#000048'
               }}>
               {error ? error : "Place your finger to authenticate and complete payment instantly."}

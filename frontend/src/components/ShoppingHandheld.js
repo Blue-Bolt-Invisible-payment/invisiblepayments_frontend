@@ -1922,22 +1922,21 @@ const ShoppingHandheld = ({
 <CheckCircleIcon sx={{ color: "#FFFFFF", fontSize: { xs: 36, md: 49 } }} />
 </Box>
 <Box sx={{ textAlign: "center" }}>
+
 <Typography
-
-                sx={{
-
-                  fontFamily: "Gallix, sans-serif",
-
-                  fontSize: { xs: "14px", md: "17px" },
-
-                  color: "#000048",
-
-                  mb: 1,
-
-                }}
+  sx={{
+    fontFamily: "Gallix, sans-serif",
+    fontSize: { xs: "14px", md: "17px" },
+    color: "#000048",
+    mb: 1,
+    whiteSpace: 'nowrap', // keep everything on one line
+  }}
 >
-
-                Your payment has been completed.
+  Your payment of{" "}
+  <Typography component="span" sx={summaryValueStyle}>
+    ${orderTotal.toFixed(2)}
+  </Typography>{" "}
+  has been completed.
 </Typography>
 <Typography
 
