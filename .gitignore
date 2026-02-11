@@ -92,3 +92,10 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Local env / VM-specific
+frontend/.env.production
+
+# Accidental files
+frontend/CI=false
+frontend/cognizant-smartpay-frontend@0.1.0

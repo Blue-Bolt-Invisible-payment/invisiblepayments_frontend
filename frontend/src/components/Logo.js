@@ -33,7 +33,7 @@ const Logo = ({ variant = 'default' }) => {
       }}
     >
       <img
-        src="/logo/ApplicationMainLogo.png"
+        src={`${process.env.PUBLIC_URL}/logo/ApplicationMainLogo.png`}
         alt="Cognizant SmartPay Logo"
         style={{
           width: '100%',
