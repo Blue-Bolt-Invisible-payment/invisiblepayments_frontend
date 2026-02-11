@@ -235,7 +235,7 @@ return (
 <Box sx={{ mb: { xs: 1.25, sm: 4.75 }, display: 'flex', justifyContent: 'center' }}>
 <img
 
-          src="/logo/ApplicationMainLogo.png"
+          src={`${process.env.PUBLIC_URL}/logo/ApplicationMainLogo.png`}
 
           alt="Cognizant SmartPay Logo"
 
