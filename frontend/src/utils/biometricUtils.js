@@ -169,8 +169,15 @@ const captureViaWebAuthn = async () => {
     // Fetch all registered credentials from backend
     let allowCredentials = [];
     try {
-      const response = await fetch(process.env.REACT_APP_API_BASE ||
-  `${window.location.origin}/api/auth/credentials`);
+     // const response = await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/api/auth/credentials`);
+      // UPDATED URL: Ensure it includes /login before /api
+      const response = await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/credentials`);
+      // Safety check: ensure we didn't get HTML
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+          console.error("Backend returned non-JSON response. Check Nginx proxy.");
+          throw new Error("Could not fetch credentials. Server returned HTML.");
+    }
       const credentialIds = await response.json();
       
       // Convert credential IDs to the format WebAuthn expects
