@@ -10,7 +10,7 @@ import axios from 'axios';
 
 const API_BASE_URL = 
   process.env.REACT_APP_API_BASE || 
-  `${window.location.origin}/login/api/login`; // Added /login/ prefix
+  `${window.location.origin}/api`;
 
   
 // ====================================
