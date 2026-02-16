@@ -4,9 +4,13 @@ import axios from 'axios';
 
 // Prefer env var injected at build time; otherwise use current origin (VM IP)
 // and the /api/login path that NGINX proxies to the Shopping backend.
-const API_BASE_URL =
+/* const API_BASE_URL =
   process.env.REACT_APP_API_BASE ||
-  `${window.location.origin}/api/login`;
+  `${window.location.origin}/api/login`; */
+
+const API_BASE_URL = 
+  process.env.REACT_APP_API_BASE || 
+  `${window.location.origin}/login/api/login`; // Added /login/ prefix
 
   
 // ====================================
