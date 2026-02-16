@@ -166,41 +166,43 @@ export const captureFingerprintUniversal = async () => {
  */
 const captureViaWebAuthn = async () => {
   try {
-    // Fetch all registered credentials from backend
     let allowCredentials = [];
-    try {
-     // const response = await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/api/auth/credentials`);
-      // UPDATED URL: Ensure it includes /login before /api
-      const response = await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/credentials`);
-      // Safety check: ensure we didn't get HTML
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-          console.error("Backend returned non-JSON response. Check Nginx proxy.");
-          throw new Error("Could not fetch credentials. Server returned HTML.");
+    
+    // 1. Fetch Credentials
+    const apiUrl = process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/credentials`;
+    console.log('Fetching credentials from:', apiUrl);
+
+    const response = await fetch(apiUrl);
+
+    // 2. Safety Check: Ensure response is valid JSON
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error("Server returned HTML or invalid format. Check Nginx proxy/routing.");
     }
-      const credentialIds = await response.json();
-      
-      // Convert credential IDs to the format WebAuthn expects
-      allowCredentials = credentialIds.map(id => ({
-        id: base64ToArrayBuffer(id),
-        type: 'public-key'
-      }));
-      
-      console.log('Fetched credentials for authentication:', allowCredentials.length);
-      
-      if (allowCredentials.length === 0) {
-        throw new Error('No registered users found. Please register first.');
-      }
-    } catch (err) {
-      console.error('Failed to fetch credentials:', err);
+
+    // 3. Handle Empty Responses (Fixes the Content-Length: 0 issue)
+    const responseText = await response.text();
+    if (!responseText || responseText.trim() === "" || responseText === "[]") {
+      console.warn("No credentials found on server for this request.");
+      throw new Error("No registered users found. Please register first.");
+    }
+
+    const credentialIds = JSON.parse(responseText);
+    
+    // 4. Map Credentials for WebAuthn
+    allowCredentials = credentialIds.map(id => ({
+      id: base64ToArrayBuffer(id),
+      type: 'public-key'
+    }));
+    
+    if (allowCredentials.length === 0) {
       throw new Error('No registered users found. Please register first.');
     }
 
-    // Generate random challenge (in production, get this from backend)
+    // 5. Trigger WebAuthn Browser Prompt
     const challenge = new Uint8Array(32);
     window.crypto.getRandomValues(challenge);
 
-    // Request fingerprint authentication - platform authenticator only
     const credential = await navigator.credentials.get({
       publicKey: {
         challenge: challenge,
@@ -210,8 +212,7 @@ const captureViaWebAuthn = async () => {
       }
     });
 
-    // Convert credential to fingerprint data
-    const fingerprintData = {
+    return {
       method: 'webauthn',
       deviceType: getBiometricDeviceName(),
       credentialId: arrayBufferToBase64(credential.rawId),
@@ -221,17 +222,13 @@ const captureViaWebAuthn = async () => {
       timestamp: new Date().toISOString()
     };
 
-    return fingerprintData;
   } catch (error) {
-    if (error.name === 'NotAllowedError') {
-      throw new Error('User cancelled fingerprint scan');
-    }
-    if (error.name === 'NotSupportedError') {
-      throw new Error('No credentials found. User not enrolled.');
-    }
-    throw new Error('WebAuthn authentication failed: ' + error.message);
+    console.error('WebAuthn Error Detail:', error);
+    if (error.name === 'NotAllowedError') throw new Error('User cancelled fingerprint scan');
+    throw error; // Pass the descriptive error up to the UI
   }
 };
+
 
 /**
  * Method 2: Android Biometric API (for Android apps/PWAs)
