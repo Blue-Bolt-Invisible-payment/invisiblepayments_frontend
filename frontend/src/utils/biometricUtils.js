@@ -172,14 +172,15 @@ const captureViaWebAuthn = async () => {
     //const apiUrl = process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/credentials`;
     const apiUrl = process.env.REACT_APP_API_BASE || `${window.location.origin}/api/auth/credentials`;
     console.log('Fetching credentials from:', apiUrl);
+
+    const response = await fetch(apiUrl);
+    
     // Check for server errors (like the 500 error you saw)
     if (!response.ok) {
       const errorMsg = await response.text();
       console.error('Server Error:', errorMsg);
       throw new Error(`Backend error (${response.status}). Check Azure logs.`);
     }
-    
-    const response = await fetch(apiUrl);
 
     // 2. Safety Check: Ensure response is valid JSON
     const contentType = response.headers.get("content-type");
