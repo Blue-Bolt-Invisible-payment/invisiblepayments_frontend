@@ -171,7 +171,7 @@ const captureViaWebAuthn = async () => {
     try {
      // const response = await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/api/auth/credentials`);
       // UPDATED URL: Ensure it includes /login before /api
-      const response = await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/credentials`);
+      const response = await fetch('http://localhost:8080/api/auth/credentials');
       // Safety check: ensure we didn't get HTML
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
