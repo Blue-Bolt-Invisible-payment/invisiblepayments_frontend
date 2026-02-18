@@ -167,62 +167,49 @@ export const captureFingerprintUniversal = async () => {
 const captureViaWebAuthn = async () => {
   try {
     let allowCredentials = [];
-<<<<<<< HEAD
-    try {
-     // const response = await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/api/auth/credentials`);
-      // UPDATED URL: Ensure it includes /login before /api
-      const response = await fetch('http://localhost:8080/api/auth/credentials');
-      // Safety check: ensure we didn't get HTML
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-          console.error("Backend returned non-JSON response. Check Nginx proxy.");
-          throw new Error("Could not fetch credentials. Server returned HTML.");
-=======
-    
     // 1. Fetch Credentials
     //const apiUrl = process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/credentials`;
-    const apiUrl = process.env.REACT_APP_API_BASE || `${window.location.origin}/api/auth/credentials`;
+	//const apiUrl = process.env.REACT_APP_API_BASE || `${window.location.origin}/api/auth/credentials`;
+    //console.log('Fetching credentials from:', apiUrl);
+    //const response = await fetch(apiUrl);
+    const API_BASE = process.env.REACT_APP_API_BASE || `${window.location.origin}/api/login`;
+    const apiUrl = `${API_BASE}/auth/credentials`;
     console.log('Fetching credentials from:', apiUrl);
-
     const response = await fetch(apiUrl);
-    
     // Check for server errors (like the 500 error you saw)
     if (!response.ok) {
       const errorMsg = await response.text();
       console.error('Server Error:', errorMsg);
       throw new Error(`Backend error (${response.status}). Check Azure logs.`);
->>>>>>> 4ae653f705da5c7e86af1d9e11333cdc531dbd76
     }
-
+ 
     // 2. Safety Check: Ensure response is valid JSON
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
       throw new Error("Server returned HTML or invalid format. Check Nginx proxy/routing.");
     }
-
+ 
     // 3. Handle Empty Responses (Fixes the Content-Length: 0 issue)
     const responseText = await response.text();
     if (!responseText || responseText.trim() === "" || responseText === "[]") {
       console.warn("No credentials found on server for this request.");
       throw new Error("No registered users found. Please register first.");
     }
-
+ 
     const credentialIds = JSON.parse(responseText);
-    
     // 4. Map Credentials for WebAuthn
     allowCredentials = credentialIds.map(id => ({
       id: base64ToArrayBuffer(id),
       type: 'public-key'
     }));
-    
     if (allowCredentials.length === 0) {
       throw new Error('No registered users found. Please register first.');
     }
-
+ 
     // 5. Trigger WebAuthn Browser Prompt
     const challenge = new Uint8Array(32);
     window.crypto.getRandomValues(challenge);
-
+ 
     const credential = await navigator.credentials.get({
       publicKey: {
         challenge: challenge,
@@ -231,7 +218,7 @@ const captureViaWebAuthn = async () => {
         allowCredentials: allowCredentials
       }
     });
-
+ 
     return {
       method: 'webauthn',
       deviceType: getBiometricDeviceName(),
@@ -241,14 +228,13 @@ const captureViaWebAuthn = async () => {
       userHandle: credential.response.userHandle ? arrayBufferToBase64(credential.response.userHandle) : null,
       timestamp: new Date().toISOString()
     };
-
+ 
   } catch (error) {
     console.error('WebAuthn Error Detail:', error);
     if (error.name === 'NotAllowedError') throw new Error('User cancelled fingerprint scan');
     throw error; // Pass the descriptive error up to the UI
   }
 };
-
 
 /**
  * Method 2: Android Biometric API (for Android apps/PWAs)
