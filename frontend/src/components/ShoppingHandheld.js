@@ -6,7 +6,7 @@ Typography,
 Box,
 List,
 Divider,
-// Paper,
+Paper,
 Alert,
 Dialog,
 DialogContent,
@@ -18,7 +18,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { getCart, getCartTotal, proceedToPay } from "../api";
+import { getCart, getCartTotal, addItemsToCart, proceedToPay } from "../api";
 import AppHeader from "./AppHeader";
 import PaymentScan from "./PaymentScan";
 import PaymentFailed from "./PaymentFailed";
@@ -209,13 +209,12 @@ const getImageUrl = (path) => {
 if (!path) return "/logo/16.png";
 // If it's already a full URL (http/https), use as-is
 if (path.startsWith("http")) return path;
-// If it starts with / (e.g. /api/..., /uploads/..., /images/...), serve from backend
-if (path.startsWith("/")) return `http://localhost:8080${path}`;
-// If it's a relative path from DB (e.g. "uploads/products/apple.png" or "images/16.png")
-// Serve from backend with leading slash
-if (path.includes("/") || path.includes("\\")) return `http://localhost:8080/${path}`;
-// Just a filename â€” serve from backend uploads
-return `http://localhost:8080/uploads/products/${path}`;
+// If it already starts with /, use as-is (resolved by proxy or same origin)
+if (path.startsWith("/")) return path;
+// If it's a relative path (e.g. "uploads/products/apple.png"), add leading slash
+if (path.includes("/") || path.includes("\\")) return `/${path}`;
+// Just a filename â€” assume it's in uploads/products
+return `/uploads/products/${path}`;
 };
 
 // --- FIXED Responsive Cart Item Component ---
@@ -392,7 +391,6 @@ onLogout,
 onPaymentSuccessShown,
 onPaymentSuccessHidden,
 }) => {
-  // eslint-disable-next-line 
 const [error, setError] = useState("");
 const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 const [showPaymentScan, setShowPaymentScan] = useState(false);
@@ -533,9 +531,7 @@ setShowPaymentScan(true);
 };
 
 // Ref for auto-redirect timer after payment success
-// eslint-disable-next-line 
 const paymentSuccessTimerRef = useRef(null);
-// eslint-disable-next-line 
 const [successCountdown, setSuccessCountdown] = useState(30);
 
 const handlePaymentAuthorized = async (authData) => {
@@ -1428,4 +1424,3 @@ textTransform: "none",
 };
 
 export default ShoppingHandheld;
-
