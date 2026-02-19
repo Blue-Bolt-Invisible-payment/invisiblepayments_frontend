@@ -16,18 +16,20 @@ export const useLogout = (onResetSession) => {
       localStorage.removeItem('user');
       // If you store more, clear them here:
       // sessionStorage.clear();
-      navigate("/")
+      //navigate("/")
+      //navigate("/login/", { replace: true });
       // Invoke app's reset logic (same as inactivity timeout)
       if (typeof onResetSession === 'function') {
-        onResetSession();
+        onResetSession(false);
       }
-    } catch (err) {
+      navigate("/login/", { replace: true });
+      } catch (err) {
       // Ensure app still resets even if storage cleanup throws
       if (typeof onResetSession === 'function') {
-        onResetSession();
+        onResetSession(false);
       }
+      navigate("/login/", { replace: true });
     }
   };
-
   return logout;
 };
