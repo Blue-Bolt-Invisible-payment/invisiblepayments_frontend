@@ -25,7 +25,7 @@ const AppHeader = ({ user, showWallet }) => {
  
       if (userId) {
         // Call the Spring Boot backend to set status to 'n'
-        await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/logout/${userId}`, {
+        await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/api/auth/logout/${userId}`, {
           
           method: "POST",
           headers: {
