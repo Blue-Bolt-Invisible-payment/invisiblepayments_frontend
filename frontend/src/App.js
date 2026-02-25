@@ -53,7 +53,7 @@ function App() {
       const userId = user?.userId || user?.id || storedUser?.userId;
  
       if (userId) {
-       await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/logout/${userId}`, {
+         await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/logout/${userId}`, {
          
           method: "POST",
           headers: {

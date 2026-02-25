@@ -25,7 +25,7 @@ const AppHeader = ({ user, showWallet }) => {
  
       if (userId) {
         // Call the Spring Boot backend to set status to 'n'
-        await fetch(`http://localhost:8080/api/auth/logout/${userId}`, {
+      await fetch(`http://localhost:8080/api/auth/logout/${userId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           // credentials: "include", // uncomment if using cookie sessions
