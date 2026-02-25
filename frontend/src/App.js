@@ -53,10 +53,12 @@ function App() {
       const userId = user?.userId || user?.id || storedUser?.userId;
  
       if (userId) {
-          await fetch(`http://localhost:8080/api/auth/logout/${userId}`, {
+         await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/logout/${userId}`, {
+         
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          // credentials: "include", // uncomment if using cookie sessions
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
       }
     } catch (error) {
