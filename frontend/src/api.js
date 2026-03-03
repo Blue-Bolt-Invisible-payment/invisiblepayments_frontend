@@ -1,6 +1,6 @@
 import axios from 'axios';
  
- //const API_BASE_URL = 'http://localhost:8080/api';
+ const API_BASE_URL = 'http://localhost:8080/api';
  
 // Prefer env var injected at build time; otherwise use current origin (VM IP)
 // and the /api/login path that NGINX proxies to the Shopping backend.
@@ -13,9 +13,9 @@ import axios from 'axios';
   process.env.REACT_APP_API_BASE ||
   `${window.location.origin}/api/login`; */
  
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE ||
-  `${window.location.origin}/api`;
+// const API_BASE_URL =
+//   process.env.REACT_APP_API_BASE ||
+//   `${window.location.origin}/api`;
  
  
  
@@ -326,32 +326,21 @@ export const clearCart = (userId) =>
  * Returns: { transactionId, status, receipt, newBalance, timestamp }
  * Throws: "Insufficient wallet balance" or "Cart is empty"
  */
-export const proceedToPay = async (userId) => {
-  if (MOCK_MODE || TEST_USER_MODE) {
-    const total = mockCartData.reduce((sum, item) => sum + (item.item.price * item.quantity), 0);
-    mockCartData = [];
-    return Promise.resolve({
-      data: {
-        transactionId: 'TXN' + Date.now(),
-        status: 'success',
-        receipt: 'Receipt generated',
-        newBalance: MOCK_USER.walletBalance - total,
-        timestamp: new Date().toISOString()
-      }
-    });
-  }
- 
-  try {
-    return await axios.post(`${API_BASE_URL}/payment/process`, { userId });
-  } catch (err) {
-    const msg =
-      err?.response?.data?.message ||
-      err?.response?.data?.error ||
-      err?.message ||
-      "Payment failed";
-    console.error("PAYMENT ERROR:", err?.response?.data || err);
-    throw new Error(msg);
-  }
+export const proceedToPay = (userId) => {
+    if (MOCK_MODE || TEST_USER_MODE) {
+        const total = mockCartData.reduce((sum, item) => sum + (item.item.price * item.quantity), 0);
+        mockCartData = []; // Clear cart after payment
+        return Promise.resolve({
+            data: {
+                transactionId: 'TXN' + Date.now(),
+                status: 'success',
+                receipt: 'Receipt generated',
+                newBalance: MOCK_USER.walletBalance - total,
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+    return axios.post(`${API_BASE_URL}/payment/process`, { userId });
 };
  
 /**
