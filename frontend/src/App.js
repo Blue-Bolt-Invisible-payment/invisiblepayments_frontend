@@ -53,19 +53,12 @@ function App() {
       const userId = user?.userId || user?.id || storedUser?.userId;
  
       if (userId) {
-<<<<<<< HEAD
-        await fetch(`http://localhost:8080/api/auth/logout/${userId}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          // credentials: "include", // uncomment if using cookie sessions
-=======
          await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/logout/${userId}`, {
          
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
->>>>>>> e873155f2cefb14afe867ca22e83e33f19421124
         });
       }
     } catch (error) {
@@ -297,9 +290,4 @@ function App() {
   );
 }
  
-<<<<<<< HEAD
 export default App;
-=======
-export default App;
- 
->>>>>>> e873155f2cefb14afe867ca22e83e33f19421124
