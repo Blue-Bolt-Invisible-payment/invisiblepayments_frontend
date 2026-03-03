@@ -25,11 +25,14 @@ const AppHeader = ({ user, showWallet }) => {
  
       if (userId) {
         // Call the Spring Boot backend to set status to 'n'
+<<<<<<< HEAD
         await fetch(`http://localhost:8080/api/auth/logout/${userId}`, {
+=======
+         await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/login/api/auth/logout/${userId}`, {
+>>>>>>> e873155f2cefb14afe867ca22e83e33f19421124
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
+          // credentials: "include", // uncomment if using cookie sessions
         });
       }
     } catch (error) {
@@ -64,7 +67,7 @@ const AppHeader = ({ user, showWallet }) => {
   return (
     <>
       <AppBar position="fixed" sx={{ width: "100%", height: "60px", bgcolor: "#000048", top: 0, left: 0, zIndex: 1100, boxShadow: "none", display: "flex", flexDirection: "row", alignItems: "center", px: 2 }}>
-        <Box component="img" src="/logo/smartpayLogo.png" sx={{ width: 207, height: 138, position: "absolute", top: -38, left: -3 }} />
+        <Box component="img"  src={`${process.env.PUBLIC_URL}/logo/smartpayLogo.png`} sx={{ width: 207, height: 138, position: "absolute", top: -38, left: -3 }} />
         <Box sx={{ flexGrow: 1 }} />
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
           <Button
