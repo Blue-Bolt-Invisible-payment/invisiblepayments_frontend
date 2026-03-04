@@ -1,25 +1,47 @@
 import React, { useState, useEffect, useRef } from "react";
+
  
 
 import {
+
   Button,
+
   Typography,
+
   Box,
+
   List,
+
   Divider,
+
+  // Paper,
+
   Alert,
+
   Dialog,
+
   DialogContent,
+
   IconButton,
+
   CircularProgress,
+
 } from "@mui/material";
+
 import Link from '@mui/material/Link';
+
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+
  
+
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+
  
+
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
+
  
+
 import CloseIcon from "@mui/icons-material/Close";
 
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -406,7 +428,7 @@ const EmptyCartView = ({ user, onLogout }) => {
 
           component="img"
 
-          src={`${process.env.PUBLIC_URL}/logo/Image.png`}
+          src={`${process.env.PUBLIC_URL}/logo/image.png`}
 
           sx={{ width: { xs: "160px", md: "220px" }, mb: 4 }}
 
@@ -573,23 +595,7 @@ const CartItemComponent = React.memo(({ cartItem }) => {
 
  
 
-          <Typography
-
-            sx={{
-
-              fontFamily: "Gallix, sans-serif",
-
-              fontSize: { xs: "11px", md: "12px" },
-
-              color: "#B0B0B0",
-
-            }}
-
-          >
-
-            {cartItem.item.rfidTag ? `#${cartItem.item.rfidTag}` : "#Scanning..."}
-
-          </Typography>
+         
 
         </Box>
 
@@ -800,8 +806,8 @@ const ShoppingHandheld = ({
   onPaymentSuccessHidden,
 
 }) => {
-
-  const [error] = useState("");
+// eslint-disable-next-line
+  const [error, setError] = useState("");
 
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
@@ -813,9 +819,9 @@ const ShoppingHandheld = ({
 
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
 
+  
   // eslint-disable-next-line
-
-  const [setPaymentData] = useState(null);
+const [paymentData, setPaymentData] = useState(null);
 
   const [paymentError, setPaymentError] = useState("");
 
@@ -892,17 +898,21 @@ const ShoppingHandheld = ({
       }
 
     };
+
+ 
+
     fetchCartData();
 
     // eslint-disable-next-line
+ }, [userId]);
 
-  }, [userId,onUpdateCart]);
+ 
 
   // Ref for auto-redirect timer after payment success
 
   const paymentSuccessTimerRef = useRef(null);
-
-  const [ setSuccessCountdown] = useState(30);
+// eslint-disable-next-line
+  const [successCountdown, setSuccessCountdown] = useState(30);
 
  
 
@@ -924,122 +934,66 @@ const ShoppingHandheld = ({
 
  
 
-  // RFID Polling - fetch cart every 3 seconds to detect RFID-scanned items
+ useEffect(() => {
+  if (!userId) return;
 
-  // Only updates UI when cart actually changes (new item scanned or item removed)
-
-  // Stops polling during payment flow to prevent empty cart flash
-
-  useEffect(() => {
-
-    if (!userId) return;
-
- 
-
-    // Stop polling during payment flow
-
-    if (isProcessing || showPaymentSuccess || paymentError) {
-
-      if (pollingRef.current) {
-
-        clearInterval(pollingRef.current);
-
-        pollingRef.current = null;
-
-      }
-
-      return;
-
+  if (isProcessing || showPaymentSuccess || paymentError) {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
     }
+    return;
+  }
 
- 
+  const pollCart = async () => {
+    try {
+      const cartRes = await getCart(userId);
+      const cartData = cartRes.data || cartRes;
+      const newItems = Array.isArray(cartData) ? cartData : [];
 
-    const pollCart = async () => {
+      let removedNames = [];
 
-      try {
+      prevCartRef.current.forEach((prevItem) => {
+        const match = newItems.find(
+          (ci) => ci.item?.name === prevItem.item?.name
+        );
 
-        const cartRes = await getCart(userId);
-
-        const cartData = cartRes.data || cartRes;
-
-        const newItems = Array.isArray(cartData) ? cartData : [];
-
-        const newLength = newItems.length;
-
- 
-
-        // Only update UI when cart actually changed (new tag scanned or item removed)
-
-        if (newLength !== prevCartLengthRef.current) {
-
-          // RFID AUTO-REMOVE: Detect which item was removed
-
-          if (newLength < prevCartLengthRef.current && prevCartRef.current.length > 0) {
-
-            // Find items that were in previous cart but NOT in new cart
-
-            const newIds = new Set(newItems.map((ci) => ci.id));
-
-            const removedItems = prevCartRef.current.filter((ci) => !newIds.has(ci.id));
-
-            if (removedItems.length > 0) {
-
-              const removedName = removedItems
-
-                .map((ci) => ci.item?.name || "Unknown Item")
-
-                .join(", ");
-
-              setRemovedItemName(removedName);
-
-              setShowItemRemovedDialog(true);
-
-            }
-
-          }
-
- 
-
-          prevCartLengthRef.current = newLength;
-
-          prevCartRef.current = newItems;
-
-          const totalRes = await getCartTotal(userId);
-
-          onUpdateCart(cartData, totalRes.subtotal || totalRes.data || 0);
-
+        // 🔥 FULL REMOVAL
+        if (!match) {
+          removedNames.push(prevItem.item?.name);
         }
 
-      } catch (err) {
+        // 🔥 QUANTITY DECREASE
+        else if (match.quantity < prevItem.quantity) {
+          removedNames.push(prevItem.item?.name);
+        }
+      });
 
-        console.error("RFID poll error:", err);
-
+      // 🔥 SHOW POPUP ONLY IF REAL DECREASE
+      if (removedNames.length > 0) {
+        setRemovedItemName(removedNames.join(", "));
+        setShowItemRemovedDialog(true);
       }
 
-    };
+      prevCartRef.current = newItems;
 
- 
+      const totalRes = await getCartTotal(userId);
+      onUpdateCart(cartData, totalRes.subtotal || totalRes.data || 0);
 
-    pollingRef.current = setInterval(pollCart, 3000);
+    } catch (err) {
+      console.error("RFID poll error:", err);
+    }
+  };
 
- 
+  pollingRef.current = setInterval(pollCart, 3000);
 
-    return () => {
-
-      if (pollingRef.current) {
-
-        clearInterval(pollingRef.current);
-
-      }
-
-    };
-
-    // eslint-disable-next-line
-
-  }, [userId, isProcessing,onUpdateCart, showPaymentSuccess, paymentError]);
-
- 
-
+  return () => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+    }
+  };
+}, [userId, isProcessing, showPaymentSuccess, paymentError, onUpdateCart]);
+// eslint-disable-next-line
   const currentTotal = (cart || []).reduce(
 
     (acc, item) => acc + Number(item.item?.price || 0) * item.quantity,
@@ -1528,11 +1482,9 @@ const ShoppingHandheld = ({
 
           <List sx={{ p: 0 }}>
 
-            {cart.map((item) => (
-
-              <CartItemComponent key={item.id} cartItem={item} />
-
-            ))}
+           {cart.map((item) => (
+  <CartItemComponent key={item.id} cartItem={item} />
+))}
 
           </List>
 
@@ -1606,7 +1558,7 @@ const ShoppingHandheld = ({
 
               </Typography>
 
-              <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "15px", color:"#000048" }}>
+              <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "15px", color: "#000048" }}>
 
                 ${currentTotal.toFixed(2)}
 
@@ -1624,7 +1576,7 @@ const ShoppingHandheld = ({
 
               </Typography>
 
-              <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "15px", color:"#000048" }}>
+              <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "15px", color: "#000048" }}>
 
                 $2.50
 
@@ -1640,13 +1592,13 @@ const ShoppingHandheld = ({
 
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
 
-              <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color:"#000048" }}>
+              <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color: "#000048" }}>
 
                 Order Total
 
               </Typography>
 
-              <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color:"#000048" }}>
+              <Typography sx={{ fontFamily: "Gallix, sans-serif", fontWeight: 600, fontSize: "20px", color: "#000048" }}>
 
                 ${orderTotal.toFixed(2)}
 
@@ -1884,7 +1836,7 @@ const ShoppingHandheld = ({
 
             <IconButton onClick={handleCancelConfirmation} sx={{ p: 0 }}>
 
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"xmlns="http://www.w3.org/2000/svg">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
 
                 <path
 
@@ -1966,7 +1918,7 @@ const ShoppingHandheld = ({
 
  
 
-          <Box sx={{ display: "flex", gap: { xs: "16px", md: "32px" }, justifyContent: "center", flexWrap:"wrap" }}>
+          <Box sx={{ display: "flex", gap: { xs: "16px", md: "32px" }, justifyContent: "center", flexWrap: "wrap" }}>
 
             <Button onClick={handleCancelConfirmation} sx={outlineButtonStyle}>
 
@@ -2004,7 +1956,7 @@ const ShoppingHandheld = ({
 
         <DialogContent sx={{ p: 0 }}>
 
-          <PaymentScan onAuthorized={handlePaymentAuthorized} onClose={() =>setShowPaymentScan(false)} />
+          <PaymentScan onAuthorized={handlePaymentAuthorized} onClose={() => setShowPaymentScan(false)} />
 
         </DialogContent>
 
@@ -2194,7 +2146,7 @@ const ShoppingHandheld = ({
 
             <IconButton onClick={handlePaymentSuccessClose}>
 
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"xmlns="http://www.w3.org/2000/svg">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
 
                 <path
 
@@ -2654,7 +2606,7 @@ const ShoppingHandheld = ({
 
             <IconButton onClick={() => setShowItemRemovedDialog(false)} sx={{ p: 0 }}>
 
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"xmlns="http://www.w3.org/2000/svg">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
 
                 <path
 
@@ -2859,6 +2811,7 @@ const containedButtonStyle = {
   "&:hover": { bgcolor: "#000048" },
 
 };
- 
-export default ShoppingHandheld;
 
+ 
+
+export default ShoppingHandheld;
