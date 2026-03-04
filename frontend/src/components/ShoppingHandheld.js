@@ -428,7 +428,7 @@ const EmptyCartView = ({ user, onLogout }) => {
 
           component="img"
 
-          src={`${process.env.PUBLIC_URL}/logo/image.png`}
+          src={`${process.env.PUBLIC_URL}/logo/Image.png`}
 
           sx={{ width: { xs: "160px", md: "220px" }, mb: 4 }}
 
