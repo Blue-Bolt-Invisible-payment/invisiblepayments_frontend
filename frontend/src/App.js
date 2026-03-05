@@ -7,7 +7,7 @@ import WalletDisplay from "./components/WalletDisplay";
 import ShoppingHandheld from "./components/ShoppingHandheld";
 import PaymentConfirmation from "./components/PaymentConfirmation";
 import InstallPrompt from "./components/InstallPrompt";
-import { disableTestMode, getCart, getCartTotal } from "./api";
+import { disableTestMode, getCart, getCartTotal, logoutUser } from "./api"; 
 import SessionWarningBanner from "./components/SessionWarningBanner";
 import SessionLocked from "./components/SessionLocked";
  
@@ -19,8 +19,8 @@ function App() {
   const [showWarning, setShowWarning] = useState(false);
   const [sessionLocked, setSessionLocked] = useState(false);
   const confirmationTimerRef = useRef(null);
-  const suppressLockRef = useRef(false); // suppress session lock while showing confirmation or local success
-  const loggingOutRef = useRef(false);   // prevent duplicate logout attempts
+  const suppressLockRef = useRef(false); 
+  const loggingOutRef = useRef(false);   
  
   const resetSession = useCallback(() => {
     if (confirmationTimerRef.current) {
@@ -35,36 +35,30 @@ function App() {
     disableTestMode();
   }, []);
  
-  // NEW: logout flow for post-payment redirect to /login (calls backend first)
+  // UPDATED:instade of fetch using logoutUser in api.js 
+  
   const startLogoutFlow = useCallback(async () => {
     if (loggingOutRef.current) return;
     loggingOutRef.current = true;
  
     try {
-      // cancel any pending confirmation redirect timers
       if (confirmationTimerRef.current) {
         clearTimeout(confirmationTimerRef.current);
         confirmationTimerRef.current = null;
       }
  
-      // read userId BEFORE clearing storage
       const stored = localStorage.getItem("user");
       const storedUser = stored ? JSON.parse(stored) : null;
       const userId = user?.userId || user?.id || storedUser?.userId;
  
       if (userId) {
-        // Replace with your actual Azure Backend URL
-await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+        // REMOVED: direct fetch call
+        // ADDED: api.js call
+        await logoutUser(userId); 
       }
     } catch (error) {
       console.error("Backend logout failed:", error);
     } finally {
-      // local cleanup + redirect to login
       localStorage.clear();
       sessionStorage.clear();
       window.location.href = "/login";
@@ -77,14 +71,12 @@ await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}
   const resetInactivity = useInactivityTimeout(
     () => {
       if (currentStep === "confirmation") {
-        // CHANGED: call backend logout then go to /login
         startLogoutFlow();
       } else {
         if (!suppressLockRef.current) setSessionLocked(true);
       }
     },
     timeoutMs,
-    // disable the inactivity hook while on confirmation screen so it cannot trigger the session lock there
     !!user && currentStep !== "confirmation"
   );
  
@@ -125,14 +117,11 @@ await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}
     setCurrentStep("shopping");
   }, []);
  
-  // UPDATED: Now triggered after PaymentScan is successful inside ShoppingHandheld
   const handleEndShopping = useCallback(
     async (authData) => {
-      // suppress session lock while we transition to confirmation
       suppressLockRef.current = true;
       if (user) {
         try {
-          // Update user if authData has new balance
           if (authData) setUser((prev) => ({ ...prev, ...authData }));
  
           const cartResponse = await getCart(user.id);
@@ -140,19 +129,14 @@ await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}
           setCart(cartResponse.data);
           setTotal(totalResponse.data);
  
-          // ensure any warning/lock is cleared and start 30s redirect to welcome
           setShowWarning(false);
           setSessionLocked(false);
- 
-          // Move directly to final success screen
           setCurrentStep("confirmation");
  
-          // start 30s timer -> call backend logout -> redirect to /login
           if (confirmationTimerRef.current) {
             clearTimeout(confirmationTimerRef.current);
           }
           confirmationTimerRef.current = setTimeout(() => {
-            // CHANGED: call backend logout then go to /login
             startLogoutFlow();
           }, 30000);
         } catch (error) {
@@ -180,23 +164,19 @@ await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}
   );
  
   const handlePaymentSuccessShown = useCallback(() => {
-    // suppress any lock or warning while payment success is visible
     suppressLockRef.current = true;
     setShowWarning(false);
     setSessionLocked(false);
  
-    // start 30s auto-logout timer (clear existing first)
     if (confirmationTimerRef.current) {
       clearTimeout(confirmationTimerRef.current);
     }
     confirmationTimerRef.current = setTimeout(() => {
-      // CHANGED: call backend logout then go to /login
       startLogoutFlow();
     }, 30000);
   }, [startLogoutFlow]);
  
   const handlePaymentSuccessHidden = useCallback(() => {
-    // clear the auto-logout timer and allow session lock again
     if (confirmationTimerRef.current) {
       clearTimeout(confirmationTimerRef.current);
       confirmationTimerRef.current = null;
@@ -250,7 +230,6 @@ await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}
                 user={user}
                 cart={cart}
                 total={total}
-                // CHANGED: exit triggers backend logout -> /login
                 onExit={startLogoutFlow}
               />
             )}
@@ -264,7 +243,6 @@ await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}
           </Box>
         )}
  
-        {/* Only show warning banner and lock on screens other than welcome and confirmation */}
         {currentStep !== "confirmation" && currentStep !== "welcome" && (
           <SessionWarningBanner
             show={showWarning}

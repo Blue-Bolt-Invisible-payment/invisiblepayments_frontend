@@ -9,7 +9,9 @@ import {
   IconButton,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
- 
+// ADDED: api.js-ilirundhu logoutUser-ai import pannunga
+import { logoutUser } from "../api"; 
+
 const AppHeader = ({ user, showWallet }) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -17,30 +19,26 @@ const AppHeader = ({ user, showWallet }) => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
  
-  // Updated handleLogout to call the backend endpoint
+  // UPDATED: fetch-ku badhila api.js axios call use pannudhu
   const handleLogout = async () => {
     try {
-      // Extract userId from the user prop or localStorage
-      const userId = user?.userId || user?.id || JSON.parse(localStorage.getItem("user"))?.userId;
+      const stored = localStorage.getItem("user");
+      const storedUser = stored ? JSON.parse(stored) : null;
+      const userId = user?.userId || user?.id || storedUser?.userId || storedUser?.id;
  
       if (userId) {
-       // Replace with your actual Azure Backend URL
-await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
+        // REMOVED: direct fetch call
+        // ADDED: api.js call via Axios
+        await logoutUser(userId);
+        console.log("Backend logout successful");
       }
     } catch (error) {
       console.error("Backend logout failed:", error);
     } finally {
-      // This block runs regardless of whether the fetch succeeded or failed
+      // Local cleanup always runs
       localStorage.clear();
       sessionStorage.clear();
       handleClose();
- 
       window.location.href = "/login";
     }
   };
@@ -85,10 +83,8 @@ await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}
           sx: { borderRadius: "8px", width: "766px", maxWidth: "90vw", background: "#FFFFFF", padding: "24px" }
         }}
       >
-        {/* Header Row: Icon + Title + Close Button */}
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: "16px" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            {/* Circle Logout Icon */}
             <Box sx={{
               width: 44, height: 44, bgcolor: "#000048", borderRadius: "50%",
               display: "flex", justifyContent: "center", alignItems: "center", flexShrink: 0
@@ -98,7 +94,6 @@ await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}
               </Box>
             </Box>
  
-            {/* Title Text */}
             <Typography sx={{
               fontFamily: "Gallix, sans-serif", fontWeight: 500, fontSize: "24px", color: "#000048",
               letterSpacing: "-3%", lineHeight: "100%"
@@ -107,15 +102,13 @@ await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}
             </Typography>
           </Box>
  
-          {/* Close Icon Button */}
           <IconButton onClick={handleClose} sx={{ color: "#000048", p: 0 }}>
             {CloseIconSVG}
           </IconButton>
         </Box>
  
-        {/* Horizontal Line Divider */}
         <Box sx={{
-            width: "718px",
+            width: "100%",
             height: "0px",
             border: "1px solid #000048",
             mb: "24px",
@@ -123,7 +116,6 @@ await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}
         }} />
  
         <DialogContent sx={{ p: 0 }}>
-          {/* Description Text */}
           <Typography sx={{
             fontFamily: "Gallix, sans-serif", fontWeight: 400, fontSize: "17px", color: "#000048",
             lineHeight: "100%", letterSpacing: "-3%", mb: "32px"
@@ -131,7 +123,6 @@ await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}
             You’ll need to log in again to complete your purchase.
           </Typography>
  
-          {/* Action Buttons */}
           <Box sx={{ display: "flex", gap: "12px", justifyContent: "flex-start" }}>
             <Button
               variant="outlined"
