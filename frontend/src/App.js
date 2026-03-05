@@ -53,13 +53,13 @@ function App() {
       const userId = user?.userId || user?.id || storedUser?.userId;
  
       if (userId) {
-         await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/api/auth/logout/${userId}`, {
-         
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        // Replace with your actual Azure Backend URL
+await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
       }
     } catch (error) {
       console.error("Backend logout failed:", error);

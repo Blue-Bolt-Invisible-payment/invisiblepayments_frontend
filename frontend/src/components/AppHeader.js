@@ -24,12 +24,14 @@ const AppHeader = ({ user, showWallet }) => {
       const userId = user?.userId || user?.id || JSON.parse(localStorage.getItem("user"))?.userId;
  
       if (userId) {
-        // Call the Spring Boot backend to set status to 'n'
-         await fetch(process.env.REACT_APP_API_BASE || `${window.location.origin}/api/auth/logout/${userId}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          // credentials: "include", // uncomment if using cookie sessions
-        });
+       // Replace with your actual Azure Backend URL
+await fetch(`https://smartpaybackend.azurewebsites.net/api/auth/logout/${userId}`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
       }
     } catch (error) {
       console.error("Backend logout failed:", error);
