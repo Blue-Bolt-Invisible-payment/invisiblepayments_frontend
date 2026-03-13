@@ -33,7 +33,7 @@ import Link from '@mui/material/Link';
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 
  
-
+// eslint-disable-next-line
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
  
@@ -188,7 +188,7 @@ const EmptyCartView = ({ user, onLogout }) => {
 
             left: { xs: "12px", sm: "24px", md: "33px" },
 
-            right: { xs: "12px", sm: "24px", md: "33px" },
+            right: { xs: "25px", sm: "24px", md: "15px" },
 
             display: "flex",
 
@@ -1322,7 +1322,7 @@ const [paymentData, setPaymentData] = useState(null);
 
                 ml: "auto",
 
-                pr: { xs: 2, md: 5 },
+                pr: { xs: 1, md: 3 },
 
               }}
 
@@ -1473,12 +1473,6 @@ const [paymentData, setPaymentData] = useState(null);
             </Box>
 
           </Box>
-
- 
-
-          <Divider sx={{ display: { xs: "none", md: "block" } }} />
-
- 
 
           <List sx={{ p: 0 }}>
 
@@ -1666,7 +1660,7 @@ const [paymentData, setPaymentData] = useState(null);
 
                     fontSize: "18px",
 
-                    color: walletBalance < orderTotal ? "#FF3B30" : "#2DB81F",
+                    color: walletBalance < orderTotal ? "#FF3B30" : "#066C02",
 
                   }}
 
@@ -2192,7 +2186,9 @@ const [paymentData, setPaymentData] = useState(null);
 
             >
 
-              <CheckCircleIcon sx={{ color: "#FFFFFF", fontSize: { xs: 36, md: 49 } }} />
+            <svg width="49" height="35" viewBox="0 0 49 35" fill="none" xmlns="http://www.w3.org/2000/svg" sx={{ color: "#FFFFFF", fontSize: { xs: 36, md: 49 } }}>
+            <path d="M47.8775 1.01285C47.5534 0.691912 47.1678 0.437176 46.7429 0.263338C46.3181 0.0894997 45.8623 0 45.4021 0C44.9418 0 44.4861 0.0894997 44.0612 0.263338C43.6363 0.437176 43.2507 0.691912 42.9266 1.01285L16.9515 26.5568L6.0385 15.8051C5.70197 15.4858 5.3047 15.2348 4.86938 15.0663C4.43407 14.8978 3.96922 14.8152 3.50139 14.8231C3.03355 14.8311 2.5719 14.9294 2.14277 15.1126C1.71365 15.2958 1.32546 15.5602 1.00038 15.8907C0.675295 16.2212 0.41968 16.6113 0.248126 17.0388C0.0765722 17.4664 -0.00756083 17.9229 0.000533163 18.3823C0.00862716 18.8418 0.108789 19.2952 0.295299 19.7166C0.481809 20.138 0.751014 20.5193 1.08754 20.8385L14.476 33.9872C14.8002 34.3081 15.1858 34.5628 15.6107 34.7367C16.0355 34.9105 16.4912 35 16.9515 35C17.4118 35 17.8675 34.9105 18.2924 34.7367C18.7173 34.5628 19.1029 34.3081 19.427 33.9872L47.8775 6.04631C48.2315 5.72567 48.5139 5.33651 48.7071 4.90336C48.9003 4.47021 49 4.00246 49 3.52958C49 3.0567 48.9003 2.58895 48.7071 2.1558C48.5139 1.72265 48.2315 1.33349 47.8775 1.01285Z" fill="white"/>
+            </svg>
 
             </Box>
 
@@ -2229,6 +2225,37 @@ const [paymentData, setPaymentData] = useState(null);
                 has been completed.
 
               </Typography>
+
+             <Typography
+
+                sx={{
+
+                  fontFamily: "Gallix, sans-serif",
+
+                  fontSize: { xs: "14px", md: "17px" },
+
+                  color: "#000048",
+
+                  mb: 1,
+
+                  whiteSpace: "nowrap",
+
+                }}
+
+              >
+
+                Your Wallet Balance is{" "}
+
+                <Typography component="span" sx={summaryValueStyle}>
+
+                  $ {Number(user?.walletBalance || 0).toFixed(2)}
+
+                </Typography>{" "}
+
+               .
+
+              </Typography>
+
 
  
 
@@ -2530,7 +2557,7 @@ const [paymentData, setPaymentData] = useState(null);
 
           sx: {
 
-            width: "520px",
+            width: "776px",
 
             maxWidth: "95%",
 
