@@ -2248,7 +2248,7 @@ const [paymentData, setPaymentData] = useState(null);
 
                 <Typography component="span" sx={summaryValueStyle}>
 
-                  $ {Number(user?.walletBalance || 0).toFixed(2)}
+                  ${(Number(user?.walletBalance || 0) - Number(orderTotal || 0)).toFixed(2)}
 
                 </Typography>{" "}
 
